@@ -1,0 +1,148 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(python *)",
+      "Bash(pip *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(echo *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(touch *)",
+      "Bash(which *)",
+      "Bash(where *)",
+      "Bash(pwd *)",
+      "Bash(tasklist *)",
+      "Bash(gh *)",
+      "mcp__zread__get_repo_structure",
+      "mcp__zread__search_doc",
+      "mcp__zread__read_file",
+      "mcp__web-search-prime__web_search_prime",
+      "mcp__web-reader__webReader",
+      "mcp__web_reader__webReader",
+      "Skill(*)",
+      "Bash(bash .claude/skills/code-tester/scan-test-targets.sh frontend/src/core/browser/cdp/command)",
+      "Bash(bash .claude/skills/impl-planner/list-structure.sh)",
+      "Bash(bash .claude/skills/impl-planner/list-plans.sh)",
+      "Bash(bash .claude/skills/task-breakdown/list-structure.sh)",
+      "Bash(bash .claude/skills/task-breakdown/list-tech-stack.sh)",
+      "Bash(bash .claude/skills/task-breakdown/list-reports.sh)",
+      "Bash(bash .claude/skills/code-reuse-finder/list-structure.sh)",
+      "Bash(bash .claude/skills/code-reuse-finder/list-tech-stack.sh)",
+      "Bash(bash .claude/skills/code-reuse-finder/list-reports.sh)",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/impl-planner/list-structure.sh\")",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/impl-planner/list-plans.sh\")",
+      "Bash(bash d:/development/code/zwyAi/.claude/skills/code-tester/scan-test-targets.sh \"frontend/src/core/browser/cdp/command\")",
+      "Bash(bash \"d:/CodeDevelopment/CodeProject/zwyAi/.claude/skills/impl-planner/list-structure.sh\")",
+      "Bash(bash \"d:/CodeDevelopment/CodeProject/zwyAi/.claude/skills/impl-planner/list-plans.sh\")",
+      "Bash(grep -v \"^d:/CodeDevelopment/CodeProject/zwyAi/frontend/src/core/browser$\")",
+      "Bash(grep -v \"^d:/CodeDevelopment/CodeProject/zwyAi/frontend/src/core/perception$\")",
+      "Bash(grep -v \"^d:/CodeDevelopment/CodeProject/zwyAi/frontend/src/core/tools$\")",
+      "Bash(bash \"D:/development/code/zwyAi/.claude/skills/code-tester/scan-test-targets.sh\" \"D:/development/code/zwyAi/frontend/src/core/browser\")",
+      "Bash(bash \"D:/development/code/zwyAi/.claude/skills/code-tester/scan-test-targets.sh\" \"D:/development/code/zwyAi/frontend/src/core/browser/adapter\")",
+      "Bash(bash \"D:/development/code/zwyAi/.claude/skills/code-tester/scan-test-targets.sh\" \"D:/development/code/zwyAi/frontend/src/core/browser/cdp/adapter\")",
+      "Bash(bash \"D:/development/code/zwyAi/.claude/skills/code-tester/scan-test-targets.sh\" \"D:/development/code/zwyAi/frontend/src/core/browser/cdp/state\")",
+      "Bash(mv \"C:/Users/EDY/.claude/rules/typescript.md\" \"C:/Users/EDY/.claude/rules/javascript.md\" \"C:/Users/EDY/.claude/rules/python.md\" \"C:/Users/EDY/.claude/rules/java.md\" \"C:/Users/EDY/.claude/rules/go.md\" \"C:/Users/EDY/.claude/rules/rust.md\" \"C:/Users/EDY/.claude/rules/cpp.md\" \"C:/Users/EDY/.claude/rules/csharp.md\" \"C:/Users/EDY/.claude/rules/php.md\" \"C:/Users/EDY/.claude/rules/ruby.md\" \"C:/Users/EDY/.claude/rules/swift.md\" \"C:/Users/EDY/.claude/rules/kotlin.md\" \"d:/development/code/zwyAi/.claude/rules/\")",
+      "Bash(mv \"C:/Users/EDY/.claude/rules/scala.md\" \"C:/Users/EDY/.claude/rules/sql.md\" \"C:/Users/EDY/.claude/rules/shell.md\" \"C:/Users/EDY/.claude/rules/dart.md\" \"C:/Users/EDY/.claude/rules/html-css.md\" \"C:/Users/EDY/.claude/rules/lua.md\" \"C:/Users/EDY/.claude/rules/r-lang.md\" \"C:/Users/EDY/.claude/rules/perl.md\" \"C:/Users/EDY/.claude/rules/haskell.md\" \"C:/Users/EDY/.claude/rules/elixir.md\" \"C:/Users/EDY/.claude/rules/zig.md\" \"C:/Users/EDY/.claude/rules/powershell.md\" \"d:/development/code/zwyAi/.claude/rules/\")",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/code-tester/scan-test-targets.sh\" \"d:/development/code/zwyAi/frontend/src/core/browser/cdp\")",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/code-tester/scan-test-targets.sh\" \"d:/development/code/zwyAi/frontend/src/core/browser/adapter\")",
+      "Bash([ -f \"$base/run-tests.sh\" ])",
+      "Bash([ -f \"$base/run-tests.ps1\" ])",
+      "Bash([ -f \"$base/README.md\" ])",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/code-tester/check-deliverables.sh\" \"d:/development/code/zwyAi/frontend/src/core/browser/cdp/adapter/__tests__\")",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/code-tester/check-deliverables.sh\" \"d:/development/code/zwyAi/frontend/src/core/browser/cdp/state/__tests__\")",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/code-tester/check-deliverables.sh\" \"d:/development/code/zwyAi/frontend/src/core/browser/adapter/__tests__\")",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/code-tester/check-deliverables.sh\" \"d:/development/code/zwyAi/frontend/src/core/browser/cdp/command/__tests__\")",
+      "Bash(conda run:*)",
+      "Bash(D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe -m playwright install chromium)",
+      "Bash(D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe crawl_claudecn.py)",
+      "Bash(D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe -c \"import playwright_stealth; print\\('stealth OK'\\)\")",
+      "Bash(D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe -m pip install playwright-stealth)",
+      "Bash(xargs grep:*)",
+      "Bash(netstat -ano)",
+      "Bash(bash \"d:/development/code/zwyAi/.claude/skills/code-tester/check-deliverables.sh\" \"d:/development/code/zwyAi/frontend/src/core/browser/cdp/command/__tests__\")",
+      "Bash(ls /c/Python*/python.exe)",
+      "Read(//c/Users/Administrator/AppData/Local/Programs/**)",
+      "Bash(grep -oP '.{0,80}机器学习与人工智能.{0,80}' \"d:/CodeDevelopment/CodeProject/zwyAi/.claude/scripts/scripts/doc/docs_source-analysis_coordinator.html\")",
+      "Bash(mv docs_agent-skills.md \"中文/Agent技能体系/模块首页.md\")",
+      "Bash(mv docs_claude-code.md \"中文/Claude-Code使用指南/模块首页.md\")",
+      "Bash(mv docs_source-analysis.md \"中文/Claude-Code源码分析/模块首页.md\")",
+      "Bash(mv docs_cookbook.md \"中文/Claude-API实战手册/模块首页.md\")",
+      "Bash(mv docs_computer-use.md \"中文/计算机使用能力.md\")",
+      "Bash(bash d:/CodeDevelopment/CodeProject/zwyAi/.claude/hooks/session-track.sh)",
+      "Bash(rm -f d:/CodeDevelopment/CodeProject/zwyAi/.claude/session-tracking/default.track)",
+      "Bash(rm -f d:/CodeDevelopment/CodeProject/zwyAi/.claude/session-tracking/.track)",
+      "Bash(rm -f d:/CodeDevelopment/CodeProject/zwyAi/.claude/hooks/_debug-hook.sh)",
+      "Bash(rm -f d:/CodeDevelopment/CodeProject/zwyAi/.claude/hooks/_debug-input.json)",
+      "Bash(rm -f d:/CodeDevelopment/CodeProject/zwyAi/.claude/hooks/_debug-all.log)",
+      "Bash(bash \"d:/CodeDevelopment/CodeProject/zwyAi/.claude/skills/code-tester/../learn/load-corrections.sh\" code-tester)",
+      "Bash(bash \"d:/CodeDevelopment/CodeProject/zwyAi/.claude/skills/code-tester/scan-test-targets.sh\" \"d:/CodeDevelopment/CodeProject/zwyAi/frontend/src/core/browser/cdp/lifecycle\")",
+      "Bash(bash \"d:/CodeDevelopment/CodeProject/zwyAi/.claude/skills/code-tester/check-deliverables.sh\" \"d:/CodeDevelopment/CodeProject/zwyAi/frontend/src/core/browser/cdp/lifecycle/__tests__\")",
+      "Bash(bash \"d:/CodeDevelopment/CodeProject/zwyAi/frontend/src/core/browser/cdp/lifecycle/__tests__/run-tests.sh\")",
+      "Bash(bash \"d:/CodeDevelopment/CodeProject/zwyAi/frontend/src/core/browser/cdp/lifecycle/__tests__/e2e/run-e2e.sh\" --verbose)",
+      "Bash(bash src/core/browser/cdp/lifecycle/__tests__/e2e/run-e2e.sh --verbose)",
+      "Bash(bash:*)",
+      "Bash(conda env:*)",
+      "Bash(export PYTHONIOENCODING=utf-8)",
+      "Bash(\"D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe\" -m pytest tests_e2e/test_e2e_api.py -v --tb=short -x)",
+      "Bash(\"D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe\" -m pytest tests_e2e/test_e2e_api.py::TestHealthCheck -v --tb=short)",
+      "Bash(\"D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe\" -m pytest tests_e2e/test_e2e_api.py -v --tb=short)",
+      "Bash(D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe -m pytest tests_e2e/test_e2e_api.py::TestHealthCheck -v --tb=short -p no:timeout)",
+      "Bash(D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe -m pytest tests_e2e/test_e2e_api.py::TestCreateSession -v --tb=short -p no:timeout)",
+      "Bash(D:/development/anaconda3/Anaconda_envs/envs/baseAi/python.exe -m pytest tests_e2e/test_e2e_api.py::TestMultiTurnChat -v --tb=short -p no:timeout)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(rm -r /)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-track.sh",
+            "statusMessage": "Tracking tool usage...",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/skill-gate/skill-gate.sh",
+            "statusMessage": "Running skill output validation...",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-end.sh",
+            "statusMessage": "Analyzing session patterns...",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

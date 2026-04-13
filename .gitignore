@@ -1,9 +1,6 @@
 # Session tracking data (runtime generated)
 session-tracking/
 
-# Project-level local settings (contains project-specific paths and permissions)
-settings.local.json
-
 # Project-specific module registry mirrors
 module-registry/
 
