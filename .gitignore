@@ -9,3 +9,6 @@ module-registry/
 
 # Project-specific test file mirrors
 module-test/
+
+# ReCode local database
+.recode
