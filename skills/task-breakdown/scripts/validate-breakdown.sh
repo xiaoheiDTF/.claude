@@ -97,7 +97,15 @@ fi
 echo ""
 echo "[5/6] 检查 manifest.json 格式..."
 if [ -f "$REPORT_DIR/manifest.json" ]; then
+    # 优先 Python，fallback Node.js
+    JSON_VALID=false
     if python -m json.tool "$REPORT_DIR/manifest.json" > /dev/null 2>&1; then
+        JSON_VALID=true
+    elif node -e "JSON.parse(require('fs').readFileSync('$REPORT_DIR/manifest.json','utf8'))" > /dev/null 2>&1; then
+        JSON_VALID=true
+    fi
+
+    if [ "$JSON_VALID" = true ]; then
         echo "  ✅ manifest.json 格式正确"
 
         # 检查必需字段

@@ -49,3 +49,26 @@
 **项目场景**: E2E 测试断言 `status()` 返回值失败。沿调用链：测试 → `browser-lifecycle.ts` 的 `status()` → `collector.ts` 的 `collectSnapshot()` → 发现 `Network.getCookies` 在 headless 无活跃页面时不可用。判断为源码设计限制
 **具体做法**: 调整测试策略 — 用 `open()` 返回值代替 `status()` 来验证启动状态，绕过 CDP 命令限制
 </details>
+
+---
+
+## 验证脚本传参错误导致产物生成在错误位置
+
+> 沉淀于 2026-04-13，来源：code-tester 生成配套文件时传错路径参数，导致子项目根目录被污染
+
+**通用场景**: 工具链的验证/检查脚本需要精确的目标路径参数，传入上级目录会导致产物生成在错误位置
+**识别信号**: 验证脚本报告 MISSING，第一反应是"在当前目录补文件"而非"检查脚本参数是否精确指向目标目录"
+**通用做法**:
+  1. 验证脚本报告 MISSING 时，先检查传入参数是否精确指向产物应存在的目录
+  2. 产物（配套文件、报告、脚本）只生成在目标目录中，不在上级目录重复生成
+  3. 如果需要在上级目录也有文件（如子项目根的脚本），那是独立需求而非验证脚本的副作用
+**原因**: 验证脚本通常用 `find -maxdepth 1` 在传入目录直接查找，传入上级目录会找不到深层产物，然后"补文件"操作会在错误位置创建文件
+**避坑**: 不要因为验证脚本报 MISSING 就在当前目录补文件，先确认脚本参数指向了正确的目录层级
+**适用举例**: CI 配置中测试报告路径写错导致根目录出现临时文件、代码生成器输出路径多了一层目录、lint 配置路径不匹配导致检查不到文件、构建脚本在项目根生成临时文件而非 build/ 目录
+
+<details>
+<summary>原始案例</summary>
+
+**项目场景**: code-tester 的 `check-deliverables.sh` 被传入 `frontend/`（子项目根），而非 `frontend/src/core/browser/cdp/command/launch/__tests__/`（测试目录）。脚本在 `frontend/` 下找不到测试文件，于是补生成了 run-tests.sh、run-tests.ps1、README.md、BUG-DEFECTS.md、SECURITY-FINDINGS.md 到 `frontend/` 根目录，污染了子项目结构
+**具体做法**: 删除 `frontend/` 根目录的错误文件，用正确路径 `__tests__/` 重新运行验证脚本，确认 ALL PASS
+</details>
