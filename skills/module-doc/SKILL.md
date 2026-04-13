@@ -1,0 +1,246 @@
+---
+name: module-doc
+description: 模块文档守护者。扫描项目目录结构，确保每个模块目录都有 CLAUDE.md，并维护 .claude/module-registry/ 中的规范索引
+argument-hint: "[检查|生成|修复] [目录路径]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
+---
+
+你是模块文档守护者。你的职责是维护项目中每个业务目录的 `CLAUDE.md`，并在 `.claude/module-registry/` 中保存规范索引。
+
+---
+
+## 核心原则
+
+- **有代码的目录就要有 CLAUDE.md** — 空目录除外
+- **规范必须具体可执行** — 禁止只写抽象口号
+- **module-registry 是镜像备份** — 必须与项目中的 CLAUDE.md 保持一致
+- **增量维护** — 只处理有变更的部分，不重写整个项目
+
+---
+
+## 输入模式
+
+根据 `$ARGUMENTS` 判断行为：
+
+| $ARGUMENTS | 行为 |
+|-----------|------|
+| 空 或 "检查" | **检查模式**：扫描全项目，列出所有缺失/不完整/过时的 CLAUDE.md |
+| "生成 [路径]" | **生成模式**：为指定目录（默认全项目）生成缺失的 CLAUDE.md 和 module-registry 卡片 |
+| "修复 [路径]" | **修复模式**：检查 + 自动补全缺失内容，更新 module-registry 索引 |
+
+---
+
+## 第一步：扫描项目结构
+
+使用 Bash/Glob 收集以下信息：
+
+1. **所有包含代码文件的目录**（`.py`, `.js`, `.ts`, `.vue`, `.java`, `.go`, `.rs` 等）
+2. **这些目录是否已有 CLAUDE.md**
+3. **已有 CLAUDE.md 的关键段落完整性**（位置 / 简介 / 目录结构 / 文件创建要求 / 代码规范 / Review 检查清单）
+
+**跳过规则**：
+- 空目录（没有任何代码文件）
+- `node_modules/`, `.venv/`, `__pycache__/`, `dist/`, `build/` 等依赖/构建目录
+- `.claude/` 自身（由其内部规则管理）
+- `.git/`, `.pytest_cache/` 等工具目录
+- 纯测试元文档目录（`__tests__/`, `tests_e2e/` 等只包含测试脚本和元文档、无业务源码的目录）
+
+---
+
+## 第二步：判定缺失类型
+
+对每个目录输出判定结果：
+
+| 状态 | 说明 | 处理方式 |
+|------|------|---------|
+| **缺失** | 目录有代码文件但无 CLAUDE.md | 生成默认模板 |
+| **不完整** | 有 CLAUDE.md 但缺少关键段落 | 补全缺失段落 |
+| **过时** | 目录结构已变（新增/删除子目录）但 CLAUDE.md 未更新 | 提示更新目录结构段落 |
+| **正常** | 有 CLAUDE.md 且结构完整 | 仅同步 module-registry |
+
+---
+
+## 第三步：生成/补全 CLAUDE.md
+
+### 3.1 确定模板
+
+根据目录中的代码语言选择模板：
+
+| 语言信号 | 模板来源 |
+|---------|---------|
+| `.py` 文件为主 | `.claude/rules/python.md` + 通用模块模板 |
+| `.ts/.tsx` 文件为主 | `.claude/rules/typescript.md` + 通用模块模板 |
+| `.vue` 文件存在 | `.claude/rules/typescript.md` + Vue 组件模块模板 |
+| `.go` 文件为主 | `.claude/rules/go.md` + 通用模块模板 |
+| 混合语言 | 以主要语言为准，混合引用 |
+
+### 3.2 读取已有规范
+
+如果 `.claude/module-registry/` 中已有对应的模块卡片，优先读取其内容作为生成基础。
+
+### 3.3 生成内容
+
+生成的 `CLAUDE.md` 必须包含以下 5 个段落：
+
+```markdown
+# <目录名> 模块
+
+> 位置: `<相对项目根目录的路径>`
+
+## 简介
+
+一句话说明这个目录的职责和作用。
+
+## 目录结构
+
+（列出当前目录下的文件和子目录，标注职责）
+
+## 文件创建要求
+
+- 命名规范
+- 导出/组织方式
+- 特殊约束
+
+## 代码规范
+
+（引用 `.claude/rules/<语言>.md` 中的 3-5 条关键约束）
+
+## Review 检查清单
+
+- [ ] 规则1
+- [ ] 规则2
+- [ ] 规则3
+```
+
+**生成原则**：
+- 已存在 CLAUDE.md 的目录，**不覆盖**，只追加缺失段落
+- 新建目录必须生成完整的 CLAUDE.md
+- 所有路径使用相对项目根目录的路径
+
+---
+
+## 第四步：同步 module-registry
+
+### 4.1 计算镜像路径
+
+`.claude/module-registry/` 的目录结构**完全镜像**代码目录结构：
+
+| 代码目录路径 | registry 镜像路径 |
+|-------------|------------------|
+| `travel-agent/` | `.claude/module-registry/travel-agent/CLAUDE.md` |
+| `travel-agent/app/models/` | `.claude/module-registry/travel-agent/app/models/CLAUDE.md` |
+| `travel-web/src/components/` | `.claude/module-registry/travel-web/src/components/CLAUDE.md` |
+
+**规则**：直接将项目中的 `CLAUDE.md` 复制到 `.claude/module-registry/<相对路径>/CLAUDE.md`。
+
+### 4.2 生成/更新镜像文件
+
+**如果项目中有 CLAUDE.md**：
+- 用 `mkdir -p` 确保 `.claude/module-registry/<相对路径>/` 目录存在
+- 将项目 `CLAUDE.md` **复制**到 registry 对应位置
+
+**如果项目中没有 CLAUDE.md**（刚生成的情况）：
+- 将新生成的 CLAUDE.md 同时复制到 registry 对应位置
+- 并在镜像文件中追加占位标记（可选）
+
+### 4.3 更新 index.json
+
+更新 `.claude/module-registry/index.json`，记录所有模块的元数据：
+
+```json
+{
+  "version": "1.0",
+  "lastUpdated": "2026-04-13",
+  "modules": [
+    {
+      "id": "travel-agent",
+      "path": "travel-agent",
+      "claudeMd": "travel-agent/CLAUDE.md",
+      "registryPath": ".claude/module-registry/travel-agent/CLAUDE.md",
+      "languages": ["python"],
+      "status": "ok"
+    },
+    {
+      "id": "travel-agent-app-models",
+      "path": "travel-agent/app/models",
+      "claudeMd": "travel-agent/app/models/CLAUDE.md",
+      "registryPath": ".claude/module-registry/travel-agent/app/models/CLAUDE.md",
+      "languages": ["python"],
+      "status": "ok"
+    }
+  ]
+}
+```
+
+`status` 取值：`ok` | `missing` | `incomplete` | `outdated`
+
+---
+
+## 第五步：输出报告
+
+无论哪种模式，最终必须输出检查报告：
+
+```markdown
+## 模块文档检查报告
+
+**扫描范围**: <路径>
+**扫描时间**: YYYY-MM-DD HH:mm
+
+### 统计
+
+| 状态 | 数量 |
+|------|------|
+| 正常 | X |
+| 缺失 CLAUDE.md | X |
+| 内容不完整 | X |
+| 结构过时 | X |
+
+### 详细列表
+
+#### 缺失 CLAUDE.md
+- `path/to/dir1/` → 已生成 `path/to/dir1/CLAUDE.md`
+- `path/to/dir2/` → 已生成 `path/to/dir2/CLAUDE.md`
+
+#### 内容不完整
+- `path/to/dir3/CLAUDE.md` → 缺少 "Review 检查清单"，已补全
+
+#### 结构过时
+- `path/to/dir4/CLAUDE.md` → 目录下新增 `utils/` 子目录，建议更新
+
+### module-registry 同步结果
+- 新增卡片: X 个
+- 更新卡片: X 个
+- index.json 已更新
+```
+
+---
+
+## 关键规则
+
+1. **不覆盖已有 CLAUDE.md** — 只追加缺失段落，不删除已有内容
+2. **跳过工具目录** — `node_modules/`, `.venv/`, `__pycache__/`, `dist/`, `.git/` 等必须跳过
+3. **路径相对化** — 所有路径使用相对于项目根目录的路径
+4. **语言模板引用 rules** — CLAUDE.md 的代码规范部分必须引用 `.claude/rules/<语言>.md`
+5. **卡片必须同步** — 项目中生成/修改 CLAUDE.md 后，必须同步到 module-registry
+6. **index.json 必须更新** — 每次执行后更新索引文件
+7. **报告必须输出** — 无论是否有变更，都必须输出检查结果报告
+
+---
+
+## 与流水线 Skills 的协作
+
+本 Skill 被以下 Skill **后置调用**（以建议用户执行的方式嵌入工作流）：
+
+- `/code-implementer` — 完成代码实现和 CLAUDE.md 同步后，建议运行 `/module-doc 检查` 全局扫漏
+- `/impl-planner` — 预创建目录和 CLAUDE.md 后，建议运行 `/module-doc 修复` 确保索引同步
+
+当用户在对话中被推荐调用本 Skill 时，直接使用用户提供的参数（或默认参数）执行。
+
+$ARGUMENTS
