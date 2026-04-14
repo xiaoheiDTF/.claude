@@ -109,3 +109,49 @@ $targetPath = "$projectDir\doc\module-registry\$relPath"
 # 最终方案：改用 Python 脚本完成复杂路径操作，避免 PowerShell 版本差异
 ```
 </details>
+
+
+## 魔法字符串的三级治理策略
+
+> 沉淀于 2026-04-14，来源：分析 Claude Code 源码常量管理策略后，结合用户 Java 代码中 `map.put("key", ...)` 的魔法字符串问题，提炼的通用规范
+
+**通用场景**: 在项目中处理临时字段名、序列化 key、配置字符串、Map/JSON 字段等字面量时，需要权衡提取成本与维护收益，避免过度工程或失控扩散
+**识别信号**: 写 `map.put` / 构造 JSON / 定义 schema / 写日志事件名时，犹豫"这个字符串要不要抽成常量"
+**代码**:
+```java
+// 反模式：为只在单个方法里用一次的 key 单独抽常量类
+public class ItemFields {
+  public static final String KEY = "key"; // 过度提取，增加无意义的跳转成本
+}
+
+// 推荐：根据"使用半径"分级治理
+// ① 1~2 处使用 → 直接 inline（Java 可用 enum 或强类型 Map 兜底）
+itemMap.put("key", item.getKey());
+
+// ② 跨 3+ 模块用或易拼错 → 抽到零依赖常量文件
+// constants/xml.ts
+export const BASH_STDOUT_TAG = 'bash-stdout';
+
+// ③ 天然属于 schema / 类型的一部分 → 用类型约束代替字符串常量
+// TypeScript
+ type Entry =
+  | { type: 'summary'; leafUuid: string; summary: string }
+  | { type: 'tag'; sessionId: string; tag: string };
+```
+**用法**: 
+1. **只在 1~2 处使用的字符串** → 直接 inline 写死，用类型系统或编译器兜底（如 TypeScript union、Java 强类型枚举）
+2. **跨 3+ 模块使用或容易拼错的** → 抽到独立的零依赖常量文件（如 `constants/xml.ts`），让依赖图底层共享
+3. **天然属于 schema / 类型的一部分** → 用类型约束（union type、struct、enum、TypedDict）代替字符串常量，让类型系统本身就是约束
+**依赖**: 任何支持类型系统或常量模块的语言
+**适用举例**: Java Lombok `@FieldNameConstants`、TypeScript union type 约束 JSON 字段、Python `TypedDict` 代替 dict magic keys、Go 的 const block 或 struct tag
+
+<details>
+<summary>原始案例</summary>
+
+**项目场景**: Claude Code v2.1.88 源码中对魔法字符串的差异化处理
+**具体用法**:
+- `sessionStorage.ts` 中对 JSONL entry 的类型判断（`'summary'`、`'tag'`、`'custom-title'`）直接 inline，因为这些字符串只在该文件出现，且 `Entry` union type 已做编译期约束
+- `constants/xml.ts` 中把 `BASH_STDOUT_TAG`、`TICK_TAG` 等抽到独立常量文件，因为它们被 `sessionStorage.ts`、`messages.ts`、`tools/` 下多个模块共享
+- `configConstants.ts`（21 行）把 `NOTIFICATION_CHANNELS`、`EDITOR_MODES` 等枚举从 1,817 行的 `config.ts` 中抽离成零依赖文件，防止低层模块拉入高层依赖产生循环
+
+</details>

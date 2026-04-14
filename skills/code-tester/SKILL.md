@@ -557,11 +557,12 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录的绝对路径>
 15. **接口安全测试** — 接口测试必须覆盖认证和权限场景
 16. **OS 环境感知** — 第零步必须先检测操作系统（`OSTYPE`/`Platform`），根据当前 OS 优先推荐对应的脚本和运行命令。Windows 优先 `.ps1`，Unix 优先 `.sh`。两个脚本始终都生成，确保跨平台可用
 17. **日志 UTF-8 编码** — 脚本内强制设置 UTF-8 编码环境变量（`.sh` 用 `export LANG`，`.ps1` 用 `[Console]::OutputEncoding`），日志文件用 UTF-8 写入（`.ps1` 用 `Out-File -Encoding utf8`），杜绝 Windows 下 GBK/GB2312 编码导致的乱码
-18. **交付物完整检查** — 生成完所有文件后，必须使用 Bash 工具执行检查脚本：
+18. **交付物完整检查** — 生成完所有文件后，必须使用 Bash 工具执行检查脚本。`check-deliverables.sh` 会在传入目录下用 `find -maxdepth 1` 查找测试文件，因此**必须传入测试文件所在的目录路径**（如 `__tests__/` 或 `test/` 的绝对路径），而不是子项目根目录：
     ```bash
-    bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录路径>
+    bash $CLAUDE_SKILL_DIR/check-deliverables.sh <测试目录的绝对路径（如 __tests__/ 的完整路径）>
     ```
-    脚本会自动检查：测试文件（`*/test/*.test.*`、`*/test/test_*`）、`run-tests.sh`、`run-tests.ps1`、`README.md`、`BUG-DEFECTS.md`、`SECURITY-FINDINGS.md`、`tester-logs/`。如果有 MISSING 项，必须补生成后再检查一次，直到全部 OK
+    脚本会自动检查：测试文件（`*.test.*`、`test_*`）、`run-tests.sh`、`run-tests.ps1`、`README.md`、`BUG-DEFECTS.md`、`SECURITY-FINDINGS.md`、`tester-logs/`。如果有 MISSING 项，必须补生成后再检查一次，直到全部 OK
+19. **check-deliverables.sh 参数避坑** — `check-deliverables.sh` 使用 `find -maxdepth 1` 在传入目录直接查找 `.test.*` 文件。传入子项目根目录会导致找不到测试文件，进而在根目录错误生成配套文件，污染项目结构。参数必须指向包含测试文件的目录
 19. **module-test 镜像强制同步（红线）** — 每次生成或修改测试文件后，**必须**同步到 `doc/module-test/` 的对应镜像路径。主位置和镜像位置的内容必须保持一致。镜像路径的目录结构必须与代码目录完全一致。`skill-gate` Hook 会自动检查此项，遗漏会触发验证警告
 19. **断言失败先追根因再改** — 测试断言失败时，不要直接修改断言让测试通过。先沿调用链确认根因属于哪类：测试前置条件不满足 / 被测代码设计限制 / 真实 bug。根因是源码限制时调整测试策略绕过，根因是测试问题时修正测试
 20. **验证优先用操作返回值** — 验证操作结果时，优先使用操作本身的返回值（如 `create()` 返回的对象），而非发起独立查询（如 `getStatus()`）。独立查询可能依赖额外环境条件，在测试环境下不稳定
