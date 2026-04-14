@@ -141,7 +141,16 @@
       "Bash(\"D:/development/maven/apache-maven-3.9.14/bin/mvn\" test:*)",
       "Bash(jar tf:*)",
       "Bash(export PATH=\"D:/development/javaJdk/ms-25/bin:$PATH\")",
-      "Bash(\"D:/development/javaJdk/ms-25/bin/jar\" tf:*)"
+      "Bash(\"D:/development/javaJdk/ms-25/bin/jar\" tf:*)",
+      "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
+      "Bash(export PATH=\"D:/development/maven/apache-maven-3.9.14/bin:$PATH\")",
+      "Bash(\"D:/development/javaJdk/ms-25/bin/java.exe\" -version)",
+      "Bash(\"D:/development/maven/apache-maven-3.9.14/bin/mvn\" -version)",
+      "Bash(export LLM_API_KEY=\"sk-1d333e0c18b44d788b9f46ca9d3d18ed\")",
+      "Bash(export LLM_API_URL=\"https://dashscope.aliyuncs.com/compatible-mode/v1\")",
+      "Bash(export LLM_MODEL_NAME=\"MiniMax-M2.5\")",
+      "Bash(mvn test:*)",
+      "Bash(D:/development/maven/apache-maven-3.9.14/bin/mvn test:*)"
     ],
     "deny": [
       "Bash(rm -rf *)",
