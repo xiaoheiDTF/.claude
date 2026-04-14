@@ -127,18 +127,15 @@ echo "OS=$OSTYPE | Platform=$(uname -s 2>/dev/null || echo unknown) | Shell=$SHE
 ```
 指定目录: frontend/src/core/browser/cdp/command/
 
-扫描该目录（test 子目录结构）：
-  ├── navigate.ts        ← 已有 test/navigate.test.ts，跳过
+扫描该目录（tests 集中镜像结构）：
+  ├── navigate.ts        ← 已有 tests/core/browser/cdp/command/navigate.test.ts，跳过
   ├── click.ts           ← 需要写测试 ✓
   ├── selector.ts        ← 需要写测试 ✓
-  ├── test/              ← 已有测试子目录
-  │   ├── navigate.test.ts
-  │   └── click.test.ts
   └── subcommand/        ← 子目录，跳过（不递归）
 
 结论：只为 selector.ts 生成测试
-主测试文件位置：frontend/src/core/browser/cdp/command/test/selector.test.ts
-镜像位置：doc/module-test/frontend/src/core/browser/cdp/command/test/selector.test.ts
+主测试文件位置：frontend/tests/core/browser/cdp/command/selector.test.ts
+镜像位置：doc/module-test/frontend/tests/core/browser/cdp/command/selector.test.ts
 ```
 
 ### 0.5 定位子项目根目录（关键步骤）
@@ -193,7 +190,7 @@ bash $CLAUDE_SKILL_DIR/scan-test-targets.sh <用户指定的路径>
 ### 0.7 参考已有测试风格
 
 如果子项目中已有测试文件，先读一个了解：
-- 目录结构习惯（`__tests__/` 还是平铺？）
+- 目录结构习惯（`tests/` 集中镜像 还是平铺？）
 - 命名习惯（中文还是英文？）
 - mock 模式
 新测试保持与已有测试风格一致。
@@ -205,27 +202,24 @@ bash $CLAUDE_SKILL_DIR/scan-test-targets.sh <用户指定的路径>
 2. **已有测试文件** → 参考已有模式
 3. **都没有** → 使用 **test 子目录规则**：测试文件统一放在被测源码所在目录的 `test/` 子目录下
 
-#### test 子目录结构（默认）
+#### 集中式 tests/ 镜像结构（默认）
 
 | 被测文件 | 主测试文件位置 | module-test 镜像位置 |
 |---------|---------------|---------------------|
-| `travel-agent/app/models/chat.py` | `travel-agent/app/models/test/test_chat.py` | `doc/module-test/travel-agent/app/models/test/test_chat.py` |
-| `travel-web/src/api/chat.js` | `travel-web/src/api/test/chat.test.js` | `doc/module-test/travel-web/src/api/test/chat.test.js` |
-| `travel-web/src/components/ChatView.vue` | `travel-web/src/components/test/ChatView.test.vue` | `doc/module-test/travel-web/src/components/test/ChatView.test.vue` |
+| `travel-agent/app/models/chat.py` | `travel-agent/tests/models/test_chat.py` | `doc/module-test/travel-agent/tests/models/test_chat.py` |
+| `travel-web/src/api/chat.js` | `travel-web/tests/api/chat.test.js` | `doc/module-test/travel-web/tests/api/chat.test.js` |
+| `travel-web/src/components/ChatView.vue` | `travel-web/tests/components/ChatView.test.vue` | `doc/module-test/travel-web/tests/components/ChatView.test.vue` |
+| `backend/src/main/java/com/example/ApiService.java` | `backend/src/test/java/com/example/ApiServiceTest.java` | `doc/module-test/backend/src/test/java/com/example/ApiServiceTest.java` |
 
 **同步要求**：
 - 每次生成测试文件时，必须**同时**写入两个位置：
-  1. **主位置**：源码目录下的 `test/` 子目录
-  2. **镜像位置**：`doc/module-test/` 下与代码目录结构完全一致的路径
+  1. **主位置**：`<subproject>/tests/` 下的集中测试目录（或框架强制目录，如 `src/test/java/`）
+  2. **镜像位置**：`doc/module-test/` 下与主位置结构完全一致的路径
 - `doc/module-test/` 是测试文件的集中管理入口，方便后期统一检索和维护
 
 **框架特殊约定时的处理**：
-- 如果框架强制要求特定测试目录（如 Spring Boot 的 `src/test/java/`），测试文件先生成在框架要求位置
+- 如果框架强制要求特定测试目录（如 Spring Boot 的 `src/test/java/`、Go 的同级 `*_test.go`），测试文件先生成在框架要求位置
 - 然后**复制一份**到 `doc/module-test/` 的对应镜像路径，保持树形结构一致
-
-**例外情况**（允许使用 `__tests__/`）：
-- 项目已有测试全部放在 `__tests__/` 中
-- 某些 Jest 配置强制要求集中目录
 
 ---
 
@@ -353,43 +347,52 @@ cd <对应子项目> && <对应框架命令> <测试文件路径> --verbose
 3. 配套文件生成后必须立即运行 `check-deliverables.sh`
 4. `tester-logs/` 日志必须按本次启动时间生成，不可遗漏
 
-测试文件统一放在各模块目录的 `test/` 子目录下，并同步镜像到 `doc/module-test/`。配套文件（运行脚本、说明文档、日志）统一放在**子项目根目录**下：
+测试文件统一放在 `<subproject>/tests/` 集中目录下，按源码结构镜像组织，不散落在 `src/` 里面。配套文件（运行脚本、说明文档、日志、缺陷/漏洞清单）放在**每个测试子目录**下：
 
 ```
 <subproject-root>/
 ├── src/
 │   ├── api/
-│   │   ├── chat.js
-│   │   └── test/
-│   │       └── chat.test.js       ← 主测试文件
+│   │   └── chat.js
 │   └── components/
-│       ├── ChatView.vue
-│       └── test/
-│           └── ChatView.test.vue  ← 主测试文件
-├── run-tests.sh                   ← 【必须生成】Unix / Git Bash 一键测试脚本
-├── run-tests.ps1                  ← 【必须生成】Windows PowerShell 一键测试脚本
-├── test-logs/                     ← 运行后自动创建，存放日志
-├── tester-logs/                   ← code-tester 执行日志
-└── README.md                      ← 【必须生成】测试说明文档
+│       └── ChatView.vue
+└── tests/                         ← 统一的测试根目录
+    ├── api/
+    │   ├── chat.test.js           ← 主测试文件
+    │   ├── run-tests.sh           ← 只跑 api/ 下的测试
+    │   ├── run-tests.ps1
+    │   ├── README.md
+    │   ├── logs/                  ← 该模块的测试运行日志
+    │   ├── BUG-DEFECTS.md
+    │   └── SECURITY-FINDINGS.md
+    └── components/
+        ├── ChatView.test.vue      ← 主测试文件
+        ├── run-tests.sh           ← 只跑 components/ 下的测试
+        ├── run-tests.ps1
+        ├── README.md
+        ├── logs/
+        ├── BUG-DEFECTS.md
+        └── SECURITY-FINDINGS.md
 ```
+
+**code-tester 执行日志**（记录本次测试生成全过程）：
+- 放在 `<subproject>/tester-logs/YYYYMMDD-HHmmss-code-tester.log`
 
 **doc/module-test/ 镜像结构**：
 
 ```
 doc/module-test/
 └── travel-web/
-    └── src/
+    └── tests/
         ├── api/
-        │   └── test/
-        │       └── chat.test.js       ← 镜像备份
+        │   └── chat.test.js       ← 镜像备份
         └── components/
-            └── test/
-                └── ChatView.test.vue  ← 镜像备份
+            └── ChatView.test.vue  ← 镜像备份
 ```
 
 #### 5.1 生成 run-tests.sh（Unix / Git Bash）
 
-**脚本位置**：子项目根目录（如 `travel-agent/run-tests.sh` 或 `travel-web/run-tests.sh`）
+**脚本位置**：对应的测试子目录内（如 `travel-web/tests/api/run-tests.sh`）
 
 **脚本模板**见 `convention.md` 第七节的 `run-tests.sh` 模板（test 子目录适配版）。生成时替换以下占位符：
 - `<module-path>` — 被测模块的路径描述
@@ -403,11 +406,11 @@ export LC_ALL=${LC_ALL:-en_US.UTF-8}
 export PYTHONIOENCODING=utf-8
 ```
 
-**核心功能**：实时显示测试输出 + 写入 `test-logs/YYYYMMDD-HHmmss.log` 日志 + 显示开始/结束时间/退出码
+**核心功能**：实时显示测试输出 + 写入 `logs/YYYYMMDD-HHmmss.log` 日志 + 显示开始/结束时间/退出码
 
 #### 5.2 生成 run-tests.ps1（Windows PowerShell）
 
-**脚本位置**：子项目根目录
+**脚本位置**：对应的测试子目录内
 
 **脚本模板**见 `convention.md` 第七节的 `run-tests.ps1` 模板（module-test 适配版）。
 
@@ -422,21 +425,21 @@ $env:PYTHONIOENCODING = "utf-8"
 
 #### 5.3 生成 README.md（测试说明文档）
 
-在**子项目根目录**下生成 `README.md`，包含：
+在**对应的测试子目录**下生成 `README.md`，包含：
 
 ```markdown
-# <子项目名> 测试
+# <模块名> 测试
 > 自动生成于: YYYY-MM-DD HH:mm
 > 测试框架: <框架名>
-> 测试结构: test 子目录 + module-test 镜像
+> 测试结构: tests/ 集中镜像 + module-test 同步
 
 ## 测试覆盖
 | 源文件 | 主测试文件 | 镜像位置 | 覆盖函数 | 用例数 |
 |--------|-----------|---------|---------|-------|
-| api/chat.js | api/test/chat.test.js | doc/module-test/.../api/test/chat.test.js | sendMessage, sendMessageStream | 8 |
+| src/api/chat.js | tests/api/chat.test.js | doc/module-test/.../tests/api/chat.test.js | sendMessage, sendMessageStream | 8 |
 
 ## 运行测试
-  bash run-tests.sh           # 运行全部测试
+  bash run-tests.sh           # 运行当前目录测试
   bash run-tests.sh --verbose # 详细输出
   bash run-tests.sh --coverage # 覆盖率
 ```
@@ -448,6 +451,8 @@ $env:PYTHONIOENCODING = "utf-8"
 ```
 <subproject-root>/tester-logs/YYYYMMDD-HHmmss-code-tester.log
 ```
+
+**注意**：这是 code-tester 自身的工作日志，与测试运行日志（`tests/<模块>/logs/`）是分开的。
 
 **日志必须按级别包含**：
 
@@ -468,24 +473,28 @@ $env:PYTHONIOENCODING = "utf-8"
 ```
 已生成以下文件：
   测试代码:
-  - src/api/test/chat.test.js
-  - src/components/test/ChatView.test.vue
+  - tests/api/chat.test.js
+  - tests/components/ChatView.test.vue
 
   配套文件:
-  - run-tests.sh         (Unix / Git Bash)
-  - run-tests.ps1        (Windows PowerShell)
-  - README.md
+  - tests/api/run-tests.sh         (Unix / Git Bash)
+  - tests/api/run-tests.ps1        (Windows PowerShell)
+  - tests/api/README.md
+  - tests/api/logs/
+  - tests/api/BUG-DEFECTS.md
+  - tests/api/SECURITY-FINDINGS.md
   - tester-logs/YYYYMMDD-HHmmss-code-tester.log
 
 一键运行:
-  bash run-tests.sh              (Unix / Git Bash)
-  pwsh run-tests.ps1             (Windows PowerShell)
+  cd tests/api && bash run-tests.sh    (Unix / Git Bash)
+  cd tests/api && pwsh run-tests.ps1   (Windows PowerShell)
 ```
 
-最后，**必须执行交付物检查**，使用 Bash 工具运行：
+最后，**必须执行交付物检查**，对每个测试子目录分别运行：
 
 ```bash
-bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录的绝对路径>
+bash $CLAUDE_SKILL_DIR/check-deliverables.sh <测试子目录的绝对路径>
+# 例如：bash check-deliverables.sh D:/project/frontend/tests/api
 ```
 
 如果有 MISSING 项，补生成后再次检查，直到输出 `ALL PASS`。
@@ -557,8 +566,8 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录的绝对路径>
     - **Maven/Gradle 项目**：**不生成** `run-tests.sh`/`run-tests.ps1`，直接使用 `mvn test` 或 `gradle test` 运行
     - **其他框架**：在**测试目录内**（非项目根目录）生成 `run-tests.sh` 和 `run-tests.ps1`。脚本内容必须 ASCII-only
     - **无论哪种框架，都禁止在项目根目录生成测试脚本**
-9. **测试文档禁止覆盖项目 README** — 测试说明文档放测试目录内（如 `src/test/README.md`），**绝对禁止**在项目根目录生成 `README.md`
-10. **生成 code-tester 执行日志** — 日志放在测试目录内（如 `src/test/logs/` 或 `test/logs/`），文件名 `YYYYMMDD-HHmmss-code-tester.log`。按 INFO/WARNING/ERROR 级别记录完整的测试生成和运行过程，同时按级别在对话中输出关键信息。**禁止在项目根目录创建 `tester-logs/`**
+9. **测试文档禁止覆盖项目 README** — 测试说明文档放在 `tests/<模块>/README.md`，**绝对禁止**在项目根目录或子项目根目录生成测试用的 `README.md`
+10. **生成 code-tester 执行日志** — 日志放在**子项目根目录**的 `tester-logs/` 下，文件名 `YYYYMMDD-HHmmss-code-tester.log`。各模块的测试运行日志放在对应 `tests/<模块>/logs/` 下。**禁止把测试脚本或测试报告放在项目根目录**
 11. **命令行输出** — 测试结果要在命令行中展示，不仅是 AI 输出
 12. **记录到文件** — 测试结果必须写入子项目根目录和 `/doc/ai-coding/.../05-test/`
 12. **参考已有测试** — 先读已有的测试文件，保持风格一致
@@ -567,19 +576,20 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录的绝对路径>
 15. **接口安全测试** — 接口测试必须覆盖认证和权限场景
 16. **OS 环境感知** — 第零步必须先检测操作系统（`OSTYPE`/`Platform`），根据当前 OS 优先推荐对应的脚本和运行命令。Windows 优先 `.ps1`，Unix 优先 `.sh`。两个脚本始终都生成，确保跨平台可用
 17. **日志 UTF-8 编码** — 脚本内强制设置 UTF-8 编码环境变量（`.sh` 用 `export LANG`，`.ps1` 用 `[Console]::OutputEncoding`），日志文件用 UTF-8 写入（`.ps1` 用 `Out-File -Encoding utf8`），杜绝 Windows 下 GBK/GB2312 编码导致的乱码
-18. **交付物完整检查** — 生成完所有文件后，必须使用 Bash 工具执行检查脚本：
+18. **交付物完整检查** — 生成完所有文件后，必须对每个测试子目录执行检查脚本：
     ```bash
-    bash $CLAUDE_SKILL_DIR/check-deliverables.sh <测试目录的绝对路径>
+    bash $CLAUDE_SKILL_DIR/check-deliverables.sh <测试子目录的绝对路径>
+    # 例如：frontend/tests/api、frontend/tests/components
     ```
-    **注意**：参数必须指向包含测试文件的目录（如 `src/test/` 或 `__tests__/`），不要传子项目根目录。脚本会自动检查：测试文件、配套文件、日志目录。如果有 MISSING 项，必须补生成后再检查一次，直到全部 OK
-19. **module-test 镜像强制同步（红线）** — 每次生成或修改测试文件后，**必须**同步到 `doc/module-test/` 的对应镜像路径。主位置和镜像位置的内容必须保持一致。镜像路径的目录结构必须与代码目录完全一致。`skill-gate` Hook 会自动检查此项，遗漏会触发验证警告
+    **注意**：参数必须指向包含测试文件的具体测试子目录（如 `tests/api/`），不要传 `tests/` 根目录或子项目根目录。脚本会自动检查：测试文件、配套文件、日志目录。如果有 MISSING 项，必须补生成后再检查一次，直到全部 OK
+19. **module-test 镜像强制同步（红线）** — 每次生成或修改测试文件后，**必须**同步到 `doc/module-test/` 的对应镜像路径。主位置和镜像位置的内容必须保持一致。镜像路径的目录结构必须与主测试目录完全一致。`skill-gate` Hook 会自动检查此项，遗漏会触发验证警告
 19. **断言失败先追根因再改** — 测试断言失败时，不要直接修改断言让测试通过。先沿调用链确认根因属于哪类：测试前置条件不满足 / 被测代码设计限制 / 真实 bug。根因是源码限制时调整测试策略绕过，根因是测试问题时修正测试
 20. **验证优先用操作返回值** — 验证操作结果时，优先使用操作本身的返回值（如 `create()` 返回的对象），而非发起独立查询（如 `getStatus()`）。独立查询可能依赖额外环境条件，在测试环境下不稳定
 21. **发现缺陷不修复源码（红线）** — `code-tester` 发现功能缺陷或安全漏洞后，**只允许记录到 BUG-DEFECTS.md / SECURITY-FINDINGS.md**，**严禁**在本技能内修改任何源码文件。哪怕只是加一行注释也不行。缺陷修复由人类或后续 `/code-implementer` 执行
 22. **缺陷/漏洞文档强制生成** — 当前测试目录必须存在 `BUG-DEFECTS.md` 与 `SECURITY-FINDINGS.md`。即使没有缺陷也必须生成文件并写明"未发现"
 23. **纳入流水线 05-test** — 必须在 `doc/ai-coding` 对应需求目录生成 `05-test/` 文档与 `manifest.json`
 24. **缺陷记录可衔接** — BUG-DEFECTS.md 中每条缺陷必须包含"建议修复方向"和"关联源文件:行号"，确保人类或 `/code-implementer` 可以直接据此修复，无需重新分析
-25. **禁止在项目根目录生成任何测试相关文件（红线）** — 测试脚本、日志、报告（BUG-DEFECTS.md、SECURITY-FINDINGS.md、README.md）全部放在测试目录内（如 `src/test/reports/`）。项目根目录只属于项目本身，**绝不允许被测试产物污染**。尤其 `README.md` 是项目文档，绝不能被测试说明覆盖
+25. **禁止在项目根目录生成任何测试相关文件（红线）** — 测试脚本、日志、报告（BUG-DEFECTS.md、SECURITY-FINDINGS.md、README.md）全部放在对应测试子目录内（如 `tests/api/`、`tests/components/`）。项目根目录只属于项目本身，**绝不允许被测试产物污染**。尤其 `README.md` 是项目文档，绝不能被测试说明覆盖
 
 ---
 

@@ -5,7 +5,7 @@
 #
 # Usage:
 #   bash check-deliverables.sh <test-dir>
-#   bash check-deliverables.sh frontend/src/core/browser/cdp/command/__tests__
+#   bash check-deliverables.sh frontend/tests/core/browser/cdp/command
 #
 # Exit code: 0 = all present, 1 = missing items
 # ========================================

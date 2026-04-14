@@ -132,25 +132,26 @@ is_testable_file() {
 # ── 第四步：判断文件是否已有测试 ──
 has_test_file() {
   local source_file="$1"
+  local subproject_root="$2"
   local dir="${source_file%/*}"
   local basename="${source_file##*/}"
   local name="${basename%.*}"
 
-  # 检查同目录下是否有对应测试文件（各框架命名模式）
+  # 检查 tests/ 镜像目录下是否有对应测试文件（集中式结构）
+  local rel_path="${source_file#$subproject_root/}"
+  local tests_dir="$subproject_root/tests/$(dirname "$rel_path" | sed 's|^src/||; s|^app/||; s|^lib/||')"
+  for pattern in "${name}.test.*" "${name}.spec.*" "test_${name}.*" "${name}_test.*" "${name}Test.*" "${name}Tests.*"; do
+    if compgen -G "$tests_dir/$pattern" > /dev/null 2>&1; then
+      return 0
+    fi
+  done
+
+  # 检查同目录下是否有对应测试文件（Go 等强制同级语言）
   for pattern in "${name}.test.*" "${name}.spec.*" "test_${name}.*" "${name}_test.*" "${name}Test.*" "${name}Tests.*"; do
     if compgen -G "$dir/$pattern" > /dev/null 2>&1; then
       return 0
     fi
   done
-
-  # 检查同目录的 __tests__/ 子目录
-  if [ -d "$dir/__tests__" ]; then
-    for pattern in "${name}.test.*" "${name}.spec.*"; do
-      if compgen -G "$dir/__tests__/$pattern" > /dev/null 2>&1; then
-        return 0
-      fi
-    done
-  fi
 
   return 1
 }
@@ -159,22 +160,22 @@ has_test_file() {
 suggest_test_path() {
   local source_file="$1"
   local framework="$2"
+  local subproject_root="$3"
   local dir="${source_file%/*}"
   local basename="${source_file##*/}"
   local name="${basename%.*}"
   local ext="${basename##*.}"
 
+  # 计算 tests/ 镜像基础目录
+  local rel_path="${source_file#$subproject_root/}"
+  local tests_dir="$subproject_root/tests/$(dirname "$rel_path" | sed 's|^src/||; s|^app/||; s|^lib/||')"
+
   case "$framework" in
     vitest|jest|mocha)
-      # 优先 __tests__/
-      if [ -d "$dir/__tests__" ]; then
-        echo "$dir/__tests__/${name}.test.${ext}"
-      else
-        echo "$dir/__tests__/${name}.test.${ext}"
-      fi
+      echo "$tests_dir/${name}.test.${ext}"
       ;;
     pytest|django-test|pytest-unknown)
-      echo "$dir/test_${name}.py"
+      echo "$tests_dir/test_${name}.py"
       ;;
     junit5|testng|spring-boot-test)
       # Java: src/main → src/test 镜像
@@ -186,10 +187,10 @@ suggest_test_path() {
       echo "$dir/${name}_test.go"
       ;;
     cargo-test)
-      echo "$dir/${name}_test.rs"
+      echo "$subproject_root/tests/${name}_test.rs"
       ;;
     xunit|nunit|mstest)
-      echo "$dir/${name}Tests.cs"
+      echo "$tests_dir/${name}Tests.cs"
       ;;
     rspec)
       local spec_dir
@@ -197,11 +198,10 @@ suggest_test_path() {
       echo "$spec_dir/${name}_spec.rb"
       ;;
     phpunit|pest)
-      echo "${dir%/src}/${dir#*/src/}" | sed 's|src/|tests/|'
-      echo "tests/${name}Test.php"
+      echo "$tests_dir/${name}Test.php"
       ;;
     *)
-      echo "$dir/__tests__/${name}.test.${ext}"
+      echo "$tests_dir/${name}.test.${ext}"
       ;;
   esac
 }
@@ -234,10 +234,10 @@ echo ""
 # 如果指定了单个文件
 if [ -n "$TARGET_FILE" ]; then
   if is_testable_file "$TARGET_FILE"; then
-    if has_test_file "$TARGET_FILE"; then
+    if has_test_file "$TARGET_FILE" "$SUBPROJECT_ROOT"; then
       echo -e "  ${YELLOW}[已有测试]${NC} ${TARGET_FILE}"
     else
-      local suggested=$(suggest_test_path "$TARGET_FILE" "$FRAMEWORK")
+      local suggested=$(suggest_test_path "$TARGET_FILE" "$FRAMEWORK" "$SUBPROJECT_ROOT")
       echo -e "  ${GREEN}[需要测试]${NC} ${TARGET_FILE}"
       echo -e "              ${GRAY}→ ${suggested}${NC}"
     fi
@@ -261,12 +261,12 @@ for file in "$TARGET_DIR"/*; do
     continue
   fi
 
-  if has_test_file "$file"; then
+  if has_test_file "$file" "$SUBPROJECT_ROOT"; then
     ALREADY_TESTED+=("$filename")
     continue
   fi
 
-  suggested=$(suggest_test_path "$file" "$FRAMEWORK")
+  suggested=$(suggest_test_path "$file" "$FRAMEWORK" "$SUBPROJECT_ROOT")
   NEEDS_TEST+=("$filename|$suggested")
 done
 
