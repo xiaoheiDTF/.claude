@@ -72,3 +72,51 @@
 **项目场景**: code-tester 的 `check-deliverables.sh` 被传入 `frontend/`（子项目根），而非 `frontend/src/core/browser/cdp/command/launch/__tests__/`（测试目录）。脚本在 `frontend/` 下找不到测试文件，于是补生成了 run-tests.sh、run-tests.ps1、README.md、BUG-DEFECTS.md、SECURITY-FINDINGS.md 到 `frontend/` 根目录，污染了子项目结构
 **具体做法**: 删除 `frontend/` 根目录的错误文件，用正确路径 `__tests__/` 重新运行验证脚本，确认 ALL PASS
 </details>
+
+
+---
+
+## UI「渲染失败」优先排查状态管理而非渲染组件
+
+> 沉淀于 2026-04-14，来源：AI 自我介绍渲染失败 + 双打字动画 bug 的调用链追踪
+
+**通用场景**: 当 UI 出现「内容没显示」、「位置错乱」、「动画重复」等视觉异常时
+**识别信号**: 组件代码本身没有条件分支错误，但数据在异步回调中被 splice/push/unshift 修改；或两个布尔标志位（如 isLoading + isStreaming）可能同时触发同一类动画
+**通用做法**:
+  1. 不要先读渲染组件的模板逻辑
+  2. 向上追踪到数据/状态层，检查数组插入索引、条件标志位并发、异步回调中对状态的修改时机
+  3. 如果涉及流式/实时协议，同时检查协议解析层是否有事件丢失或字段误判
+  4. 确认渲染组件只是「忠实呈现了错误状态」
+**原因**: 渲染组件通常是纯函数式的，真正让画面出错的是它接收到的 props/state。表面看是「没渲染出来」，实际是数据插入位置错了、标志位没重置、或者协议事件丢了
+**避坑**: 不要在渲染层找半天，最后才发现是 splice 索引算错了或者 done 事件被 buffer 吞了
+**适用举例**: React 聊天应用中消息插入顺序错误、RN 列表在 WebSocket 推送时闪烁、微信小程序中下拉刷新与上拉加载动画重叠
+
+<details>
+<summary>原始案例</summary>
+
+**项目场景**: Vue 3 聊天前端中，AI 自我介绍「渲染失败」且发送一次消息出现两个打字动画
+**具体做法**: 沿调用链追踪发现：intro 消息实际被 `messages.value.splice(messages.value.length - 2, 0, introMsg)` 插到了用户消息前面（索引 0）；同时 `ChatView.vue` 底部有一个基于 `isLoading` 的全局 `TypingIndicator`，与 `MessageBubble.vue` 内基于 `isStreaming` 的流式动画同时显示。协议解析层还存在 buffer 残留导致 `done` 事件丢失的问题
+</details>
+
+---
+
+## 前后端联调时同步扫描「协议文档 vs 实际代码 vs 前端解析器」三者一致性
+
+> 沉淀于 2026-04-14，来源：Java SSE 流式接口文档与实际代码不一致的排查
+
+**通用场景**: 涉及流式协议或 REST API 的前后端联调 bug
+**识别信号**: 客户端用 `if (data.xxx)` 猜事件类型；接口文档中的示例和实际抓包内容不同；某些事件「偶尔丢失」
+**通用做法**:
+  1. 拿到 bug 描述后，同时打开三个文件：接口文档、服务端发送逻辑、客户端解析逻辑
+  2. 逐项对比：字段名是否一致、协议格式是否一致、客户端解析是否依赖了未文档化的字段猜测
+  3. 把不一致项列为独立 bug，即使它们暂时没触发运行时错误
+**原因**: 协议层面的文档漂移非常常见，且会在未来某个边界条件下突然爆发。前端「猜字段」的解析策略尤其脆弱
+**避坑**: 不要只读文档或只读代码，三者必须交叉验证。修复后优先更新文档，其次统一协议字段名为常量
+**适用举例**: gRPC proto 与实现字段名不一致、OpenAPI 定义的响应体与实际 JSON 结构漂移、物联网设备自定义二进制协议解析错误
+
+<details>
+<summary>原始案例</summary>
+
+**项目场景**: Java 后端 `/api/chat/stream` SSE 接口出现解析异常
+**具体做法**: 对比 `travel-agent-java/doc/controller/ChatController.md`、服务端 `ChatServiceImpl.java` 的 `sendSseEvent`、前端 `api/chat.js` 的 SSE 解析逻辑，发现：文档写 SSE 字段名为 `chunk` 且只有 `data:`，但代码实际发送 `token` 和 `event:` + `data:`；前端未跟踪 `event` 类型，仅靠 JSON 字段猜测事件类型。三者不一致被明确列为独立 bug
+</details>

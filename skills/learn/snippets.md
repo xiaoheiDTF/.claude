@@ -110,48 +110,44 @@ $targetPath = "$projectDir\doc\module-registry\$relPath"
 ```
 </details>
 
+## Controller-First API 文档化工作流
 
-## 魔法字符串的三级治理策略
+> 沉淀于 2026-04-14，来源：为 Python/Java 双后端生成按 Controller 组织的接口文档
 
-> 沉淀于 2026-04-14，来源：分析 Claude Code 源码常量管理策略后，结合用户 Java 代码中 `map.put("key", ...)` 的魔法字符串问题，提炼的通用规范
+**通用场景**: 前后端分离项目中，需要为 REST API 服务编写/维护接口文档，确保文档与代码一致且易于查找
+**识别信号**: 用户要求"写接口文档"、"前后端需要对接文档"、"API 文档在哪"；项目有多个 Controller/Router 文件且缺少统一文档入口
+**通用做法**:
+1. 在源码目录下建立 `doc/controller/`（或 `docs/api/controller/`），目录结构与 `src/controller/` 保持同构
+2. 每个 Controller/Router 对应一份 Markdown 文档，文件名与源码文件同名（如 `ChatController.java` → `ChatController.md`）
+3. 每份文档必须包含以下 6 个部分：
+   - **接口概览表**：接口 | 方法 | URL | Content-Type | 说明
+   - **请求说明**：URL、Headers、请求体字段表（字段名 | 类型 | 必填 | 说明）
+   - **响应说明**：字段表、JSON 示例
+   - **错误响应**：常见 HTTP 状态码、错误体示例
+   - **前端对接说明**：调用方式、状态管理、组件分发等注意事项
+   - **与后端兼容性说明**（如存在多后端实现）：协议差异显式标注
+4. 文档入口 `README.md` 汇总所有 Controller 文档链接、通用约定、快速验证命令
 
-**通用场景**: 在项目中处理临时字段名、序列化 key、配置字符串、Map/JSON 字段等字面量时，需要权衡提取成本与维护收益，避免过度工程或失控扩散
-**识别信号**: 写 `map.put` / 构造 JSON / 定义 schema / 写日志事件名时，犹豫"这个字符串要不要抽成常量"
-**代码**:
-```java
-// 反模式：为只在单个方法里用一次的 key 单独抽常量类
-public class ItemFields {
-  public static final String KEY = "key"; // 过度提取，增加无意义的跳转成本
-}
-
-// 推荐：根据"使用半径"分级治理
-// ① 1~2 处使用 → 直接 inline（Java 可用 enum 或强类型 Map 兜底）
-itemMap.put("key", item.getKey());
-
-// ② 跨 3+ 模块用或易拼错 → 抽到零依赖常量文件
-// constants/xml.ts
-export const BASH_STDOUT_TAG = 'bash-stdout';
-
-// ③ 天然属于 schema / 类型的一部分 → 用类型约束代替字符串常量
-// TypeScript
- type Entry =
-  | { type: 'summary'; leafUuid: string; summary: string }
-  | { type: 'tag'; sessionId: string; tag: string };
-```
-**用法**: 
-1. **只在 1~2 处使用的字符串** → 直接 inline 写死，用类型系统或编译器兜底（如 TypeScript union、Java 强类型枚举）
-2. **跨 3+ 模块使用或容易拼错的** → 抽到独立的零依赖常量文件（如 `constants/xml.ts`），让依赖图底层共享
-3. **天然属于 schema / 类型的一部分** → 用类型约束（union type、struct、enum、TypedDict）代替字符串常量，让类型系统本身就是约束
-**依赖**: 任何支持类型系统或常量模块的语言
-**适用举例**: Java Lombok `@FieldNameConstants`、TypeScript union type 约束 JSON 字段、Python `TypedDict` 代替 dict magic keys、Go 的 const block 或 struct tag
+**原因**: 按 Controller 组织文档与代码目录一一对应，维护成本低；直接从源码（Controller → DTO → 异常处理）生成可避免文档与代码不一致
+**避坑**: 不要把所有接口混在一个大文档里，也不要把文档放在与源码无关的目录，否则新增接口时很容易漏写文档
+**适用举例**: FastAPI 项目的 router 文档化、Spring Boot 项目的 Controller 文档化、Django REST Framework 的 ViewSet 文档化、Go Gin 的 Handler Group 文档化
 
 <details>
 <summary>原始案例</summary>
 
-**项目场景**: Claude Code v2.1.88 源码中对魔法字符串的差异化处理
-**具体用法**:
-- `sessionStorage.ts` 中对 JSONL entry 的类型判断（`'summary'`、`'tag'`、`'custom-title'`）直接 inline，因为这些字符串只在该文件出现，且 `Entry` union type 已做编译期约束
-- `constants/xml.ts` 中把 `BASH_STDOUT_TAG`、`TICK_TAG` 等抽到独立常量文件，因为它们被 `sessionStorage.ts`、`messages.ts`、`tools/` 下多个模块共享
-- `configConstants.ts`（21 行）把 `NOTIFICATION_CHANNELS`、`EDITOR_MODES` 等枚举从 1,817 行的 `config.ts` 中抽离成零依赖文件，防止低层模块拉入高层依赖产生循环
-
+**项目场景**: `travel-agent`（Python FastAPI）和 `travel-agent-java`（Spring Boot）需要各自维护接口文档，且前端 `travel-web` 要能兼容两套后端。文档目录结构如下：
+```
+travel-agent/doc/controller/
+├── README.md      ← 汇总 + 通用约定 + 快速验证命令
+├── chat.md        ← 对应 app/routers/chat.py
+travel-agent-java/doc/controller/
+├── README.md      ← 汇总 + 通用约定
+├── ChatController.md    ← 对应 ChatController.java
+├── SessionController.md ← 对应 SessionController.java
+└── HealthController.md  ← 对应 HealthController.java
+```
+**具体做法**:
+- Python 版 `chat.md` 详细说明了 `POST /api/chat` 和 `POST /api/chat/stream`（SSE），并标注了与 Java 版 SSE 的差异（`event:` 行 vs 纯 `data:` 行）
+- Java 版 `ChatController.md` 详细说明了同步/流式端点，以及 `SseEmitter` 的 60 秒超时机制
+- 所有文档的字段表、JSON 示例均直接从 DTO 源码提取，确保一致性
 </details>
