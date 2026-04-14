@@ -99,11 +99,7 @@
   - 在第五步"生成配套文件"中增加约束："配套文件只生成在测试目录内，禁止在子项目根目录重复生成"
   - 在关键规则中追加避坑："check-deliverables.sh 的参数必须指向包含 .test.* 文件的目录，不要传子项目根目录"
 **传播类型**: 避坑警示 + 规则修正
-**已修正**: 否
-
----
-
-## 对 module-doc 的修正 — 大规模修复时使用 Todo 分步追踪
+**已修正**: 是 (2026-04-14)
 
 > 记录于 2026-04-13
 > **来源**: 模式库反向传播 — 大规模批量规范化分步执行+Todo追踪 (refactor.md)
@@ -114,11 +110,7 @@
   - 在"第三步：生成/补全 CLAUDE.md"前增加检查：如果需要处理的目录超过 10 个，先用 TodoWrite 创建分步任务列表
   - 在关键规则中追加："大规模修复（10+ 目录变更）时使用 TodoWrite 分步追踪进度，避免遗漏"
 **传播类型**: 规则追加
-**已修正**: 否
-
----
-
-## 对 task-breakdown 的修正 — 模板与验证脚本验收字段格式不一致
+**已修正**: 是 (2026-04-14)
 
 > 记录于 2026-04-13
 > **来源**: 会话回顾 — 执行拆解时验证脚本报错「模块文件中没有验收: 字段」
@@ -192,4 +184,70 @@
     - "⚠️ Windows PowerShell 5.1 注意：`Join-Path` 最多只接受 2 个参数。如需拼接 3+ 段路径，请使用 `[System.IO.Path]::Combine($a, $b, $c)` 或字符串拼接 `"$a\$b\$c"`"
   - 若模板中已有嵌套 `Join-Path` 的示例（如 `Resolve-Path (Join-Path $ScriptDir "...")`），保持现状；但补充说明这是合法的两两拼接
 **传播类型**: 避坑警示
+**已修正**: 是 (2026-04-14)
+
+---
+
+## 对 code-tester 的修正 — 测试产物禁止放在项目根目录
+
+> 记录于 2026-04-14
+> **来源**: 用户反馈 — Java 项目中 run-tests.sh、README.md、BUG-DEFECTS.md 等测试文件全部生成在项目根目录，污染项目结构
+
+**问题**: code-tester 在"第五步：生成配套文件"中把 `run-tests.sh`、`run-tests.ps1`、`README.md`、`BUG-DEFECTS.md`、`SECURITY-FINDINGS.md`、`tester-logs/`、`test-logs/` 全部生成在子项目根目录。对于 Java/Maven 项目，这些文件不属于 `src/` 结构，会污染项目根目录。更严重的是，`README.md` 会覆盖项目本身的 README 文件。
+**期望行为**: 所有测试相关的脚本、文档和日志必须放在测试目录内（如 `src/test/` 下的子目录），绝不允许在项目根目录生成测试相关文件。项目根目录的 `README.md` 是项目文档，绝不能被测试说明覆盖。
+**修正建议**:
+  - 对于 Java/Maven 项目：**不生成测试脚本**（run-tests.sh/.ps1），直接用 `mvn test` 和 `mvn test -Dtest=XxxTest` 运行
+  - 对于 Java/Maven 项目：测试日志放 `src/test/logs/`，测试报告放 `src/test/reports/`，BUG-DEFECTS/SECURITY-FINDINGS 放 `src/test/reports/`
+  - 对于 Node.js 项目：测试脚本放 `test/scripts/` 或 `__tests__/scripts/`
+  - `README.md` 绝对不能放在项目根目录，改为 `src/test/README.md` 或 `TESTING.md`
+  - `BUG-DEFECTS.md` 和 `SECURITY-FINDINGS.md` 也放测试目录内
+  - 在关键规则中追加红线规则："**禁止在项目根目录生成任何测试相关文件**（脚本、日志、报告）。项目根目录只属于项目本身。测试配套文件必须放在测试目录体系内"
+  - 在第五步"生成配套文件"中增加框架适配：根据检测到的框架确定测试产物的存放位置
+  - Maven 项目的测试运行不需要生成脚本，直接使用 `mvn test` 即可
+**传播类型**: 规则修正 + 避坑警示
+**已修正**: 是 (2026-04-14)
+
+> 记录于 2026-04-14
+> **来源**: 用户反馈 — 每个测试用例在测试文件同目录下的日志中，必须包含输入值、输出值、预期值三个部分
+
+**问题**: 当前测试用例中的 System.out.println 打印格式不统一，有的只有"预期"和"实际"，缺少"输入值"。日志信息不足以快速定位断言失败的原因。
+**期望行为**: 每个测试用例的日志输出必须包含三个固定部分：输入值、输出值（实际值）、预期值。日志文件输出到测试文件同目录下的日志文件中。
+**修正建议**:
+  - 统一每个测试用例的打印格式为：
+    ```
+    [测试] 方法名 场景描述
+      输入: <具体输入值>
+      预期: <预期结果>
+      实际: <实际结果>
+    ```
+  - 测试日志文件输出到测试文件同目录（如 `ControllerTest.java` 的日志在 `src/test/java/com/travel/agent/controller/` 目录下）
+  - 日志文件名格式：`test-results-YYYYMMDD-HHmmss.log`
+  - 在关键规则中追加："每个测试用例的日志必须包含三要素：输入值、预期值、实际值。缺一不可"
+**传播类型**: 规则追加
+**已修正**: 是 (2026-04-14)
+
+> 记录于 2026-04-14
+> **来源**: 用户反馈 — 当前的通用 code-tester 不适配 Java Spring Boot 测试的特殊需求
+
+**问题**: Java Spring Boot 有自己的一套测试约定和陷阱，通用 code-tester 无法覆盖：
+  - Spring Boot 测试目录固定为 `src/test/java/` 镜像 `src/main/java/`
+  - `@WebMvcTest` 需要排除配置类（`LlmConfig`、`ManagerConfig` 等），否则 ApplicationContext 加载失败
+  - `@MockBean` 在高版本 Java（如 Java 25）上因 Byte Buddy 版本限制会失败
+  - Spring Boot Test 有 `@SpringBootTest`、`@WebMvcTest`、`@DataJpaTest` 等多种切片注解
+  - Maven 测试命令是 `mvn test`，无需额外生成脚本
+  - 测试日志直接用 Maven 的 `target/surefire-reports/`，无需自建日志目录
+**期望行为**: 有一个专门针对 Java Spring Boot 的测试 Skill，内置 Spring Boot 测试的最佳实践和避坑规则
+**修正建议**:
+  - 新建 Skill: `java-spring-boot-tester`
+  - 核心规则：
+    1. 测试目录固定 `src/test/java/` 镜像 `src/main/java/`，无需自定义 `test/` 子目录
+    2. 单元测试用纯 Mockito（不启动 Spring），`@ExtendWith(MockitoExtension.class)`
+    3. Controller 测试用 `@WebMvcTest`，必须排除所有 `@Configuration` 和 `@Component` 类（通过 `excludeFilters`）
+    4. 避坑：高版本 Java（17+）需检查 Byte Buddy 兼容性，`@MockBean` 可能失败
+    5. 集成测试用 `@SpringBootTest`，需要配置 `application-test.yml` 或 `@TestPropertySource`
+    6. 测试产物全部放在 `src/test/` 下，禁止污染项目根目录
+    7. 使用 `mvn test` 运行，不需要生成 `run-tests.sh`/`run-tests.ps1`
+    8. 日志使用 Maven 内置的 `target/surefire-reports/`
+    9. `@MockBean` 导入路径是 `org.springframework.boot.test.mock.mockito.MockBean`（不是 `.bean.`）
+**传播类型**: 新建 Skill
 **已修正**: 是 (2026-04-14)

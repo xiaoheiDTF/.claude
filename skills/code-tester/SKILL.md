@@ -545,10 +545,20 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录的绝对路径>
 4. **全覆盖维度** — 正常路径 + 边界 + 异常，三个维度都要有
 5. **不测私有方法** — 只测导出的函数/方法/类，内部实现通过公开接口间接测试
 6. **不依赖外部环境** — mock 网络请求、文件系统、数据库等外部依赖
-7. **打印预期与实际** — 每个测试用例必须打印预期值和实际值，格式：`[测试] 函数名 场景描述 / 预期: xxx / 实际: xxx`
-8. **生成双平台脚本** — 在**子项目根目录**下生成 `run-tests.sh`（Unix/Git Bash）和 `run-tests.ps1`（Windows PowerShell），支持 `--verbose` 和 `--coverage`。**脚本内容必须 ASCII-only**：禁止 Unicode box-drawing 字符（`━`、`─`、`═`），分隔线用 `========================================`（40 个 `=`），标签用英文（`Test:`、`Start:`、`End:`、`Exit:`、`Log:`），禁止中文，避免跨终端乱码
-9. **生成测试文档** — 在**子项目根目录**下生成 `README.md`，说明覆盖范围和运行方式
-10. **生成 code-tester 执行日志** — 每次启动在 `tester-logs/` 下生成 `YYYYMMDD-HHmmss-code-tester.log`，按 INFO/WARNING/ERROR 级别记录完整的测试生成和运行过程，同时按级别在对话中输出关键信息
+7. **打印输入/预期/实际三要素** — 每个测试用例必须打印输入值、预期值和实际值，格式：
+   ```
+   [测试] 函数名 场景描述
+     输入: <具体输入值>
+     预期: <预期结果>
+     实际: <实际结果>
+   ```
+   **三要素缺一不可**。只有"预期"和"实际"而缺少"输入"是不合格的
+8. **框架适配的测试脚本策略** — 根据检测到的框架决定是否生成测试脚本：
+    - **Maven/Gradle 项目**：**不生成** `run-tests.sh`/`run-tests.ps1`，直接使用 `mvn test` 或 `gradle test` 运行
+    - **其他框架**：在**测试目录内**（非项目根目录）生成 `run-tests.sh` 和 `run-tests.ps1`。脚本内容必须 ASCII-only
+    - **无论哪种框架，都禁止在项目根目录生成测试脚本**
+9. **测试文档禁止覆盖项目 README** — 测试说明文档放测试目录内（如 `src/test/README.md`），**绝对禁止**在项目根目录生成 `README.md`
+10. **生成 code-tester 执行日志** — 日志放在测试目录内（如 `src/test/logs/` 或 `test/logs/`），文件名 `YYYYMMDD-HHmmss-code-tester.log`。按 INFO/WARNING/ERROR 级别记录完整的测试生成和运行过程，同时按级别在对话中输出关键信息。**禁止在项目根目录创建 `tester-logs/`**
 11. **命令行输出** — 测试结果要在命令行中展示，不仅是 AI 输出
 12. **记录到文件** — 测试结果必须写入子项目根目录和 `/doc/ai-coding/.../05-test/`
 12. **参考已有测试** — 先读已有的测试文件，保持风格一致
@@ -559,9 +569,9 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录的绝对路径>
 17. **日志 UTF-8 编码** — 脚本内强制设置 UTF-8 编码环境变量（`.sh` 用 `export LANG`，`.ps1` 用 `[Console]::OutputEncoding`），日志文件用 UTF-8 写入（`.ps1` 用 `Out-File -Encoding utf8`），杜绝 Windows 下 GBK/GB2312 编码导致的乱码
 18. **交付物完整检查** — 生成完所有文件后，必须使用 Bash 工具执行检查脚本：
     ```bash
-    bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录路径>
+    bash $CLAUDE_SKILL_DIR/check-deliverables.sh <测试目录的绝对路径>
     ```
-    脚本会自动检查：测试文件（`*/test/*.test.*`、`*/test/test_*`）、`run-tests.sh`、`run-tests.ps1`、`README.md`、`BUG-DEFECTS.md`、`SECURITY-FINDINGS.md`、`tester-logs/`。如果有 MISSING 项，必须补生成后再检查一次，直到全部 OK
+    **注意**：参数必须指向包含测试文件的目录（如 `src/test/` 或 `__tests__/`），不要传子项目根目录。脚本会自动检查：测试文件、配套文件、日志目录。如果有 MISSING 项，必须补生成后再检查一次，直到全部 OK
 19. **module-test 镜像强制同步（红线）** — 每次生成或修改测试文件后，**必须**同步到 `doc/module-test/` 的对应镜像路径。主位置和镜像位置的内容必须保持一致。镜像路径的目录结构必须与代码目录完全一致。`skill-gate` Hook 会自动检查此项，遗漏会触发验证警告
 19. **断言失败先追根因再改** — 测试断言失败时，不要直接修改断言让测试通过。先沿调用链确认根因属于哪类：测试前置条件不满足 / 被测代码设计限制 / 真实 bug。根因是源码限制时调整测试策略绕过，根因是测试问题时修正测试
 20. **验证优先用操作返回值** — 验证操作结果时，优先使用操作本身的返回值（如 `create()` 返回的对象），而非发起独立查询（如 `getStatus()`）。独立查询可能依赖额外环境条件，在测试环境下不稳定
@@ -569,6 +579,7 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <子项目根目录的绝对路径>
 22. **缺陷/漏洞文档强制生成** — 当前测试目录必须存在 `BUG-DEFECTS.md` 与 `SECURITY-FINDINGS.md`。即使没有缺陷也必须生成文件并写明"未发现"
 23. **纳入流水线 05-test** — 必须在 `doc/ai-coding` 对应需求目录生成 `05-test/` 文档与 `manifest.json`
 24. **缺陷记录可衔接** — BUG-DEFECTS.md 中每条缺陷必须包含"建议修复方向"和"关联源文件:行号"，确保人类或 `/code-implementer` 可以直接据此修复，无需重新分析
+25. **禁止在项目根目录生成任何测试相关文件（红线）** — 测试脚本、日志、报告（BUG-DEFECTS.md、SECURITY-FINDINGS.md、README.md）全部放在测试目录内（如 `src/test/reports/`）。项目根目录只属于项目本身，**绝不允许被测试产物污染**。尤其 `README.md` 是项目文档，绝不能被测试说明覆盖
 
 ---
 
