@@ -13,6 +13,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 GATE_OUTPUT=""
 
 # Route to specific validators
+# Only trigger for paths under source directories (src/, lib/, app/, frontend/, etc.)
+# Skip doc/, .claude/, docs-learning/ to avoid false positives
+
+IS_SRC_PATH=$(echo "$PATH" | grep -cE "(^|.*/)(src|lib|app|frontend|packages|services|modules)/" 2>/dev/null || echo 0)
+
 if echo "$PATH" | grep -qE "(impl-plans|03-plan)"; then
   OUTPUT=$(echo "$INPUT" | bash "$SCRIPT_DIR/check-impl-planner.sh" 2>/dev/null)
   if [ -n "$OUTPUT" ]; then
@@ -20,7 +25,7 @@ if echo "$PATH" | grep -qE "(impl-plans|03-plan)"; then
   fi
 fi
 
-if echo "$PATH" | grep -qE "(test/|__tests__|tests/)"; then
+if [ "$IS_SRC_PATH" -gt 0 ] && echo "$PATH" | grep -qE "(__tests__|tests/)"; then
   OUTPUT=$(echo "$INPUT" | bash "$SCRIPT_DIR/check-code-tester.sh" 2>/dev/null)
   if [ -n "$OUTPUT" ]; then
     GATE_OUTPUT="$GATE_OUTPUT $OUTPUT"
