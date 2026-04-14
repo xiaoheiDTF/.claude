@@ -146,14 +146,14 @@ allowed-tools:
 
 1. **创建目录**：用 Bash `mkdir -p` 创建计划中所有需要新建的目录（已存在的跳过）
 2. **生成模块 CLAUDE.md**：为每个新建目录写入 CLAUDE.md 文件（已存在 CLAUDE.md 的目录跳过，不覆盖）
-3. **同步 module-registry 索引**：新建目录和 CLAUDE.md 完成后，在最终输出中建议用户运行 `/module-doc 修复`，将新生成的 CLAUDE.md 同步到 `.claude/module-registry/` 中
+3. **同步 module-registry 索引**：新建目录和 CLAUDE.md 完成后，在最终输出中建议用户运行 `/module-doc 修复`，将新生成的 CLAUDE.md 同步到 `doc/module-registry/` 中
 
 模块 CLAUDE.md 的作用：当 `code-implementer` 操作该目录下的文件时，CC 会自动加载这个 CLAUDE.md，为实现者提供**位置、职责、文件结构、命名规范、编码规范**的完整上下文。
 
 **关键**：
 - **新建目录**：按模板创建 CLAUDE.md（已存在则跳过不覆盖）
 - **已有目录**：如果第二步的技术栈一致性检查发现了过时的 CLAUDE.md，在计划中明确标注"需更新"并列出更新要点。code-implementer 将在第四步执行实际更新
-- **索引同步**：计划生成后，建议调用 `/module-doc 修复` 确保 `.claude/module-registry/` 与项目结构一致
+- **索引同步**：计划生成后，建议调用 `/module-doc 修复` 确保 `doc/module-registry/` 与项目结构一致
 
 ---
 

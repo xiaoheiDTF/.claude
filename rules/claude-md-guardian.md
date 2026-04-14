@@ -45,8 +45,8 @@ paths:
 
 ### 约束四：module-registry 必须作为镜像备份
 
-`.claude/module-registry/` 的目录结构必须与项目代码目录**完全一致**，其中的 `CLAUDE.md` 是项目中对应 `CLAUDE.md` 的镜像备份：
-- 项目中 `travel-agent/app/models/CLAUDE.md` → registry 中 `.claude/module-registry/travel-agent/app/models/CLAUDE.md`
+`doc/module-registry/` 的目录结构必须与项目代码目录**完全一致**，其中的 `CLAUDE.md` 是项目中对应 `CLAUDE.md` 的镜像备份：
+- 项目中 `travel-agent/app/models/CLAUDE.md` → registry 中 `doc/module-registry/travel-agent/app/models/CLAUDE.md`
 - 项目中生成/修改 `CLAUDE.md` 后，**必须**同步复制到 `module-registry` 的对应路径
 - `module-registry` 是全局检索、模板恢复和数据备份的数据源
 
@@ -98,4 +98,4 @@ paths:
 
 - [ ] 每个包含 `.py`/`.js`/`.ts`/`.vue` 的目录都有 `CLAUDE.md`
 - [ ] 每个 `CLAUDE.md` 都包含"简介"、"目录结构"、"文件创建要求"、"代码规范"段落
-- [ ] `.claude/module-registry/index.json` 存在且日期为最近 7 天内
+- [ ] `doc/module-registry/index.json` 存在且日期为最近 7 天内

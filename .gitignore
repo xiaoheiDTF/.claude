@@ -1,11 +1,2 @@
-# Session tracking data (runtime generated)
-session-tracking/
-
-# Project-specific module registry mirrors
-module-registry/
-
-# Project-specific test file mirrors
-module-test/
-
 # ReCode local database
 .recode

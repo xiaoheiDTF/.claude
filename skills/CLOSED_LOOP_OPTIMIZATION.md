@@ -249,7 +249,7 @@ session-end.sh 不再统计"调用了多少次"，而是检测：
 
 1. **查看修正状态**：`/learn 查看修正`
 2. **批量应用修正**：`/learn 应用修正`
-3. **查看会话模式**：检查 `.claude/session-tracking/pending-reviews.md`
+3. **查看会话模式**：检查 `doc/session-tracking/pending-reviews.md`
 
 ### 高级操作
 

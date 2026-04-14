@@ -29,7 +29,7 @@ paths:
 
 `.claude/hooks/skill-gate/` 中的脚本会在 `PostToolUse` Hook 中自动运行：
 - `impl-planner` 写入 `03-plan/manifest.json` → 自动检查必需文件完整性
-- `code-tester` 写入 `*/test/` 下测试文件 → 自动检查 `.claude/module-test/` 镜像是否存在
+- `code-tester` 写入 `*/test/` 下测试文件 → 自动检查 `doc/module-test/` 镜像是否存在
 - `code-implementer` 写入 `04-report/` 下报告 → 自动检查 `implementation-logs/` 是否存在
 
 **Hook 输出非空时**，视为验证警告，必须在对话中向用户明确说明，并在修正后才能继续下游操作。

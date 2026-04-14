@@ -6,8 +6,8 @@
 INPUT=$(cat)
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-TRACK_DIR="$PROJECT_DIR/session-tracking"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+TRACK_DIR="$PROJECT_DIR/doc/session-tracking"
 mkdir -p "$TRACK_DIR"
 
 # Parse JSON via Node.js process.stdin (works on Windows)

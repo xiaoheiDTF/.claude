@@ -492,6 +492,8 @@ exit ${PIPESTATUS[0]}
 
 **IMPORTANT**: Script content MUST use **ASCII-only** characters. Do NOT use Unicode box-drawing characters or non-ASCII symbols. All labels MUST be English.
 
+> **⚠️ Windows PowerShell 5.1 Compatibility Note**: The default Windows PowerShell (v5.1) `Join-Path` cmdlet only accepts **2 arguments**. If you need to combine 3+ path segments, use `[System.IO.Path]::Combine($a, $b, $c)` or string concatenation instead of `Join-Path $a $b $c`.
+
 **JS/TS (Vitest)**:
 ```powershell
 # run-tests.ps1 - <module-path>

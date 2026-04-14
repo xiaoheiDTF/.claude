@@ -177,3 +177,19 @@
   - 在关键规则中追加："当需求涉及与已有模块对齐时，在 README.md 中必须提供新旧模块映射对照表"
 **传播类型**: 规则追加
 **已修正**: 是 (2026-04-13)
+
+---
+
+## 对 code-tester 的修正 — PowerShell 模板缺少 Windows PS 5.1 兼容性警示
+
+> 记录于 2026-04-14
+> **来源**: 模式库反向传播 — Windows PowerShell 5.1 的 Join-Path 陷阱 (snippets.md)
+
+**问题**: code-tester 的 convention.md 提供了多个 `run-tests.ps1` 模板，其中使用了 `Join-Path` 做路径拼接。虽然当前模板都是 2 参数调用（合法），但 Skill 未警示 Windows 默认 PowerShell 5.1 的 `Join-Path` 不支持 3+ 参数。这导致在实际使用 Shell 工具编写类似脚本时，容易踩坑写出 3 参数版本，引发脚本崩溃且文件被错误写入根目录
+**期望行为**: 在 PowerShell 模板附近增加兼容性警示，提醒使用者 Windows PS 5.1 的 Join-Path 限制，并给出多段路径的安全写法
+**修正建议**: 
+  - 在 convention.md 的"脚本模板"相关章节（第六节前后）增加一个兼容性提示框/注释：
+    - "⚠️ Windows PowerShell 5.1 注意：`Join-Path` 最多只接受 2 个参数。如需拼接 3+ 段路径，请使用 `[System.IO.Path]::Combine($a, $b, $c)` 或字符串拼接 `"$a\$b\$c"`"
+  - 若模板中已有嵌套 `Join-Path` 的示例（如 `Resolve-Path (Join-Path $ScriptDir "...")`），保持现状；但补充说明这是合法的两两拼接
+**传播类型**: 避坑警示
+**已修正**: 是 (2026-04-14)

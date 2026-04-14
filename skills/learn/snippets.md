@@ -67,3 +67,45 @@ expect(result.processInfo.browserType).toBe('chrome');
 expect(result.processInfo.debugPort).toBe(port);
 ```
 </details>
+
+## Windows PowerShell 5.1 的 Join-Path 陷阱
+
+> 沉淀于 2026-04-14，来源：用 Shell 工具批量生成 module-test/module-registry 镜像时 PowerShell 脚本崩溃
+
+**通用场景**: 在 Windows 环境下用 PowerShell 脚本拼接多层路径并批量操作文件
+**识别信号**: Shell 工具中使用了 3+ 参数的 `Join-Path`；脚本需要在 Windows 默认 PowerShell（非 PowerShell 7）下运行
+**代码**:
+```powershell
+# ❌ 错误：Windows PowerShell 5.1 的 Join-Path 最多只接受 2 个参数
+$targetPath = Join-Path $projectDir "doc\module-registry" $relPath
+# 报错：找不到接受实际参数 "xxx" 的位置形式参数
+
+# ✅ 正确做法 1：使用 [System.IO.Path]::Combine()（支持多段）
+$targetPath = [System.IO.Path]::Combine($projectDir, "doc\module-registry", $relPath)
+
+# ✅ 正确做法 2：字符串拼接（简单场景）
+$targetPath = "$projectDir\doc\module-registry\$relPath"
+
+# ✅ 正确做法 3：多次两两拼接
+$targetPath = Join-Path (Join-Path $projectDir "doc\module-registry") $relPath
+
+# ✅ 正确做法 4：复杂批量操作改用 Python/Node.js（跨平台更稳定）
+# python -c "import shutil; shutil.copytree(...)"
+```
+**用法**: 在 Windows 环境写 PowerShell 文件操作脚本时，路径拼接超过两段必须避开 3 参数 Join-Path
+**依赖**: Windows PowerShell 5.1（Windows 默认自带版本）
+**适用举例**: Windows CI 环境中用 PowerShell 批量复制文件、用 Shell 工具递归生成目录镜像、写自动化部署脚本时的路径处理、写 PostToolUse Hook 时处理 Windows 路径
+
+<details>
+<summary>原始案例</summary>
+
+**项目场景**: 用 PowerShell 脚本把项目中的 `CLAUDE.md` 和 `*.test.ts` 镜像复制到 `doc/module-registry/` 和 `doc/module-test/`
+**具体用法**:
+```powershell
+# 崩溃代码
+$targetPath = Join-Path $projectDir "doc\module-registry" $relPath
+# 修正后
+$targetPath = "$projectDir\doc\module-registry\$relPath"
+# 最终方案：改用 Python 脚本完成复杂路径操作，避免 PowerShell 版本差异
+```
+</details>

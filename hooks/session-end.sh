@@ -6,8 +6,8 @@
 INPUT=$(cat)
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-TRACK_DIR="$PROJECT_DIR/session-tracking"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+TRACK_DIR="$PROJECT_DIR/doc/session-tracking"
 PENDING_FILE="$TRACK_DIR/pending-reviews.md"
 
 # Parse session_id
@@ -114,7 +114,7 @@ if [ -n "$FINDINGS" ]; then
 
   # Compact message to Claude — semantic, actionable
   SUMMARY=$(echo -e "$FINDINGS" | head -3 | tr '\n' ' | ')
-  echo "{\"additionalContext\": \"[auto-learn] 会话模式分析: ${SUMMARY}详见 .claude/session-tracking/pending-reviews.md\"}"
+  echo "{\"additionalContext\": \"[auto-learn] 会话模式分析: ${SUMMARY}详见 doc/session-tracking/pending-reviews.md\"}"
 fi
 
 # Cleanup

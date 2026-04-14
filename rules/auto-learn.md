@@ -94,13 +94,13 @@
 
 本项目配置了两个 Hook 自动采集数据：
 
-- **session-track.sh**（PostToolUse）— 每次工具调用后记录工具名和目标文件到 `.claude/session-tracking/`
+- **session-track.sh**（PostToolUse）— 每次工具调用后记录工具名和目标文件到 `doc/session-tracking/`
 - **session-end.sh**（Stop）— 会话结束时分析跟踪数据，检测：
   - 同一文件被编辑 3+ 次（返工信号）→ 写入 `pending-reviews.md`
   - 同一工具调用 10+ 次（重复信号）→ 写入 `pending-reviews.md`
   - Grep+Edit 循环 3+ 次（搜索-修复模式）→ 写入 `pending-reviews.md`
 
-**当新会话开始时**，检查 `.claude/session-tracking/pending-reviews.md` 是否有上次遗留的模式分析。如果有，在对话初期主动提及：
+**当新会话开始时**，检查 `doc/session-tracking/pending-reviews.md` 是否有上次遗留的模式分析。如果有，在对话初期主动提及：
 
 ```
 上次会话检测到以下模式：

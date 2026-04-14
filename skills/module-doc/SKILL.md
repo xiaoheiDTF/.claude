@@ -1,6 +1,6 @@
 ---
 name: module-doc
-description: 模块文档守护者。扫描项目目录结构，确保每个模块目录都有 CLAUDE.md，并维护 .claude/module-registry/ 中的规范索引
+description: 模块文档守护者。扫描项目目录结构，确保每个模块目录都有 CLAUDE.md，并维护 doc/module-registry/ 中的规范索引
 argument-hint: "[检查|生成|修复] [目录路径]"
 user-invocable: true
 allowed-tools:
@@ -12,7 +12,7 @@ allowed-tools:
   - Glob
 ---
 
-你是模块文档守护者。你的职责是维护项目中每个业务目录的 `CLAUDE.md`，并在 `.claude/module-registry/` 中保存规范索引。
+你是模块文档守护者。你的职责是维护项目中每个业务目录的 `CLAUDE.md`，并在 `doc/module-registry/` 中保存规范索引。
 
 ---
 
@@ -83,7 +83,7 @@ allowed-tools:
 
 ### 3.2 读取已有规范
 
-如果 `.claude/module-registry/` 中已有对应的模块卡片，优先读取其内容作为生成基础。
+如果 `doc/module-registry/` 中已有对应的模块卡片，优先读取其内容作为生成基础。
 
 ### 3.3 生成内容
 
@@ -130,20 +130,20 @@ allowed-tools:
 
 ### 4.1 计算镜像路径
 
-`.claude/module-registry/` 的目录结构**完全镜像**代码目录结构：
+`doc/module-registry/` 的目录结构**完全镜像**代码目录结构：
 
 | 代码目录路径 | registry 镜像路径 |
 |-------------|------------------|
-| `travel-agent/` | `.claude/module-registry/travel-agent/CLAUDE.md` |
-| `travel-agent/app/models/` | `.claude/module-registry/travel-agent/app/models/CLAUDE.md` |
-| `travel-web/src/components/` | `.claude/module-registry/travel-web/src/components/CLAUDE.md` |
+| `travel-agent/` | `doc/module-registry/travel-agent/CLAUDE.md` |
+| `travel-agent/app/models/` | `doc/module-registry/travel-agent/app/models/CLAUDE.md` |
+| `travel-web/src/components/` | `doc/module-registry/travel-web/src/components/CLAUDE.md` |
 
-**规则**：直接将项目中的 `CLAUDE.md` 复制到 `.claude/module-registry/<相对路径>/CLAUDE.md`。
+**规则**：直接将项目中的 `CLAUDE.md` 复制到 `doc/module-registry/<相对路径>/CLAUDE.md`。
 
 ### 4.2 生成/更新镜像文件
 
 **如果项目中有 CLAUDE.md**：
-- 用 `mkdir -p` 确保 `.claude/module-registry/<相对路径>/` 目录存在
+- 用 `mkdir -p` 确保 `doc/module-registry/<相对路径>/` 目录存在
 - 将项目 `CLAUDE.md` **复制**到 registry 对应位置
 
 **如果项目中没有 CLAUDE.md**（刚生成的情况）：
@@ -152,7 +152,7 @@ allowed-tools:
 
 ### 4.3 更新 index.json
 
-更新 `.claude/module-registry/index.json`，记录所有模块的元数据：
+更新 `doc/module-registry/index.json`，记录所有模块的元数据：
 
 ```json
 {
@@ -163,7 +163,7 @@ allowed-tools:
       "id": "travel-agent",
       "path": "travel-agent",
       "claudeMd": "travel-agent/CLAUDE.md",
-      "registryPath": ".claude/module-registry/travel-agent/CLAUDE.md",
+      "registryPath": "doc/module-registry/travel-agent/CLAUDE.md",
       "languages": ["python"],
       "status": "ok"
     },
@@ -171,7 +171,7 @@ allowed-tools:
       "id": "travel-agent-app-models",
       "path": "travel-agent/app/models",
       "claudeMd": "travel-agent/app/models/CLAUDE.md",
-      "registryPath": ".claude/module-registry/travel-agent/app/models/CLAUDE.md",
+      "registryPath": "doc/module-registry/travel-agent/app/models/CLAUDE.md",
       "languages": ["python"],
       "status": "ok"
     }
