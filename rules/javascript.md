@@ -126,3 +126,38 @@ paths:
 - 禁止硬编码密钥/token，使用环境变量
 - 第三方依赖定期审计
 - 使用 CSP（Content Security Policy）头
+
+## 魔法变量治理
+
+### 三级判定
+
+| 级别 | 条件 | 做法 |
+|------|------|------|
+| ① inline | 只在 1~2 处使用，不跨模块 | 直接写在代码中 |
+| ② 常量文件 | 跨 3+ 模块使用，或容易拼错 | `src/constants/index.js`，全部 `export const UPPER_SNAKE_CASE`，按域分组 |
+| ③ 类型约束 | 天然属于类型定义 | TypeScript 中用 `union` 或 `enum` |
+
+**配置数值**（端口、代理地址等）→ 环境变量（Vite 用 `process.env.VITE_XXX`，保留默认值回退）。
+
+### 触发信号
+
+- 同一字符串在 3 个以上文件出现（如 `'zh-CN'`, `'user'`, `'token'`）
+- API 路径、HTTP 方法、Content-Type 以字面量散落
+- SSE 协议字段名（事件名、前缀）硬编码
+- localStorage key、状态码以字面量出现
+
+### 标准写法
+
+**常量文件**：全部具名导出（`export const`），禁止 `export default`，按业务域用注释分组（API 协议 / SSE 协议 / 状态码 / 角色 / 存储 / 错误）
+
+**导入方式**：`import { API_BASE, SSE_EVENT_TOKEN } from '../constants/index.js'`
+
+### 替换原则
+
+- **纯机械替换**：只改字面量为常量引用，不改变运行时行为
+- **值完全一致**：常量值必须与原硬编码完全一致
+- **动态 key 用计算属性**：`headers: { [HEADER_CONTENT_TYPE]: CONTENT_TYPE_JSON }`
+
+### 实现顺序
+
+定义常量文件（底层零依赖）→ 替换消费代码中的硬编码 → 同步文档

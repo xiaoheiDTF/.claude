@@ -139,3 +139,34 @@ paths:
 - 使用 `html/template` 而非 `text/template` 输出 HTML（自动转义）
 - TLS 配置使用安全的最低版本和加密套件
 - 依赖审计：`go vuln check`
+
+## 魔法变量治理
+
+### 三级判定
+
+| 级别 | 条件 | 做法 |
+|------|------|------|
+| ① inline | 只在 1~2 处使用，不跨模块 | 直接写在代码中 |
+| ② 常量文件 | 跨 3+ 模块使用，或容易拼错 | `const UpperSnakeCase = "value"` 在 `constants.go` 中，按域分组 |
+| ③ 类型约束 | 天然属于类型定义 | `type Role string` + `const ( RoleUser Role = "user" )` 自定义类型 |
+
+**配置数值** → 环境变量（`os.Getenv("KEY")` + 默认值回退）或配置结构体。
+
+### 标准写法
+
+```go
+// constants.go
+const (
+    SSEEventToken = "token"
+    SSEEventDone  = "done"
+)
+```
+
+### 替换原则
+
+- **纯机械替换**：只改字面量为常量引用，不改变运行时行为
+- **值完全一致**：常量值必须与原硬编码完全一致
+
+### 实现顺序
+
+定义常量文件（底层零依赖）→ 替换消费代码 → 同步文档

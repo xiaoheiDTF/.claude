@@ -119,3 +119,33 @@ paths:
 - 敏感数据传输必须 HTTPS，禁止在 URL 中传递敏感参数
 - 使用 `Object.freeze()` 保护关键配置对象
 - 第三方依赖定期审计（`npm audit`）
+
+## 魔法变量治理
+
+### 三级判定
+
+| 级别 | 条件 | 做法 |
+|------|------|------|
+| ① inline | 只在 1~2 处使用，不跨模块 | 直接写在代码中，用类型系统兜底 |
+| ② 常量文件 | 跨 3+ 模块使用，或容易拼错 | `src/constants/index.ts`，`export const UPPER_SNAKE_CASE`，按域分组 |
+| ③ 类型约束 | 天然属于类型定义 | `type Role = 'user' \| 'assistant' \| 'system'` 或 `enum` |
+
+**配置数值** → 环境变量（Vite: `import.meta.env.VITE_XXX`），保留默认值回退。
+
+### 标准写法
+
+```typescript
+// src/constants/index.ts — 具名导出，按域分组
+export const API_BASE = '/api'
+export const SSE_EVENT_TOKEN = 'token'
+```
+
+### 替换原则
+
+- **纯机械替换**：只改字面量为常量引用，不改变运行时行为
+- **值完全一致**：常量值必须与原硬编码完全一致
+- **动态 key 用计算属性**：`{ [HEADER_CONTENT_TYPE]: CONTENT_TYPE_JSON }`
+
+### 实现顺序
+
+定义常量文件（底层零依赖）→ 替换消费代码 → 同步文档

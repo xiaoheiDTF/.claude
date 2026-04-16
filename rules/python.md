@@ -134,3 +134,33 @@ paths:
 - 输入验证：类型、长度、范围、格式（使用 Pydantic）
 - 敏感日志脱敏（密码、token、个人信息）
 - 依赖审计：`pip-audit` / `safety check`
+
+## 魔法变量治理
+
+### 三级判定
+
+| 级别 | 条件 | 做法 |
+|------|------|------|
+| ① inline | 只在 1~2 处使用，不跨模块 | 直接写在代码中 |
+| ② 常量文件 | 跨 3+ 模块使用，或容易拼错 | `constants.py`，`UPPER_SNAKE_CASE` 模块级常量 |
+| ③ 类型约束 | 天然属于类型定义 | `StrEnum` / `Literal` 类型 |
+
+**配置数值** → `pydantic-settings` 的 `BaseSettings` + `.env` 环境变量，保留默认值。
+
+### 标准写法
+
+```python
+# constants.py — 模块级常量，按域分组
+SSE_EVENT_TOKEN = "token"
+SSE_EVENT_DONE = "done"
+DEFAULT_LOCALE = "zh-CN"
+```
+
+### 替换原则
+
+- **纯机械替换**：只改字面量为常量引用，不改变运行时行为
+- **值完全一致**：常量值必须与原硬编码完全一致
+
+### 实现顺序
+
+定义常量文件（底层零依赖）→ 替换消费代码 → 同步文档

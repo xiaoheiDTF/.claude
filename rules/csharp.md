@@ -129,3 +129,24 @@ paths:
 - CORS 配置最小化
 - 使用 HTTPS 重定向
 - 依赖审计：`dotnet list package --vulnerable`
+
+## 魔法变量治理
+
+### 三级判定
+
+| 级别 | 条件 | 做法 |
+|------|------|------|
+| ① inline | 只在 1~2 处使用，不跨模块 | 直接写在代码中 |
+| ② 常量文件 | 跨 3+ 模块使用，或容易拼错 | `public static class Constants { public const string UpperSnakeCase = "value"; }` |
+| ③ 类型约束 | 天然属于类型定义 | `enum` + `Description` 特性 或 `record` |
+
+**配置数值** → `appsettings.json` + `IConfiguration` + 环境变量覆盖。
+
+### 替换原则
+
+- **纯机械替换**：只改字面量为常量引用，不改变运行时行为
+- **值完全一致**：常量值必须与原硬编码完全一致
+
+### 实现顺序
+
+定义常量文件（底层零依赖）→ 替换消费代码 → 同步文档

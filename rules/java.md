@@ -142,3 +142,41 @@ paths:
 - 依赖审计：OWASP Dependency-Check
 - HTTPS 传输敏感数据
 - 最小权限原则：文件、数据库、API 权限最小化
+
+## 魔法变量治理
+
+### 三级判定
+
+| 级别 | 条件 | 做法 |
+|------|------|------|
+| ① inline | 只在 1~2 处使用，不跨模块 | 直接写在代码中，用类型系统兜底 |
+| ② 常量类 | 跨 3+ 模块使用，或容易拼错 | `public final class` + `private` 构造函数 + `public static final String`，放在 `common/constants/` |
+| ③ 枚举 | 天然属于类型定义（角色、状态、错误码） | `enum` + `@JsonValue` + `fromValue()`，放在 `common/enums/` |
+
+**配置数值**（超时、阈值、端口等环境相关值）→ `@ConfigurationProperties` 内部类 + `application.yml` 环境变量覆盖。
+
+### 触发信号
+
+- 同一字符串在 3 个以上文件出现（如 `"token"`, `"user"`, `"session_id"`）
+- 配置数值直接写在业务逻辑中（如 `60_000L`, `4000`）
+- 协议字段名以字面量散落（SSE 事件名、JSON key）
+- 错误码和错误文案硬编码（如 `404`, `"会话不存在"`）
+
+### 标准写法
+
+**常量类**：`public final class` + `private` 构造函数（禁止实例化）+ `public static final String UPPER_SNAKE_CASE`
+
+**枚举**：`@JsonValue` 在 `getValue()` 上 + `fromValue(String)` 静态反查方法
+
+**配置内部类**：Spring Boot `@ConfigurationProperties` 内嵌 `public static class` + getter/setter + 默认值
+
+### 替换原则
+
+- **纯机械替换**：只改字面量为常量引用，不改变运行时行为
+- **值完全一致**：常量值必须与原硬编码完全一致
+- **switch 避坑**：`enum.getValue()` 不是编译期常量，不能做 switch case 标签，应转 switch 为 if-else + `Enum.XXX.getValue().equals()`
+- **不改接口签名**：DTO/Entity 字段类型不因常量替换而改变
+
+### 实现顺序
+
+定义常量/枚举/配置（底层零依赖）→ 替换消费代码中的硬编码 → 同步文档

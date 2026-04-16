@@ -150,7 +150,10 @@
       "Bash(export LLM_API_URL=\"https://dashscope.aliyuncs.com/compatible-mode/v1\")",
       "Bash(export LLM_MODEL_NAME=\"MiniMax-M2.5\")",
       "Bash(mvn test:*)",
-      "Bash(D:/development/maven/apache-maven-3.9.14/bin/mvn test:*)"
+      "Bash(D:/development/maven/apache-maven-3.9.14/bin/mvn test:*)",
+      "Bash(mkdir -p \"D:/development/code/zwyAi-Travel/travel-agent-java/src/test/java/com/travel/agent/common/parser/core\")",
+      "Bash(mkdir -p \"D:/development/code/zwyAi-Travel/travel-agent-java/src/test/java/com/travel/agent/common/parser/extract\")",
+      "Bash(rm:*)"
     ],
     "deny": [
       "Bash(rm -rf *)",
