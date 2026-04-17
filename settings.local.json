@@ -153,7 +153,9 @@
       "Bash(D:/development/maven/apache-maven-3.9.14/bin/mvn test:*)",
       "Bash(mkdir -p \"D:/development/code/zwyAi-Travel/travel-agent-java/src/test/java/com/travel/agent/common/parser/core\")",
       "Bash(mkdir -p \"D:/development/code/zwyAi-Travel/travel-agent-java/src/test/java/com/travel/agent/common/parser/extract\")",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(mkdir -p \"D:/development/code/zwyAi-Travel/.claude/skills/arch-designer/scripts\")",
+      "Bash(mkdir -p \"D:/development/code/zwyAi-Travel/.claude/skills/struct-designer/scripts\")"
     ],
     "deny": [
       "Bash(rm -rf *)",
