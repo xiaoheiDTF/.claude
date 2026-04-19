@@ -1,6 +1,10 @@
 ---
 name: cc-architect
-description: Claude Code 工程化配置专家 — 创建和管理 agents、hooks、skills、rules、settings 等 CC 配置
+description: |
+  当以下条件满足时触发：需要创建或修改 Claude Code 配置文件（agents、hooks、skills、rules、settings）、
+  用户说"帮我创建一个 agent"、"配置 hook"、"新增 Skill"、"修改 settings"、"/cc-architect"。
+  不适用：业务代码编写、项目功能实现。
+  关键词：CC 配置、agent、hook、skill、rule、settings、cc-architect
 argument-hint: "需求描述，如：帮我创建一个代码审查 agent"
 user-invocable: true
 allowed-tools:
@@ -41,6 +45,34 @@ $CLAUDE_SKILL_DIR/
     ├── rule.md               ← Rule 模板（条件/无条件）
     └── settings.md           ← Settings 模板（权限/MCP/环境变量）
 ```
+
+## 铁律
+
+> 以下规则不可违反，任何绕过行为必须获得用户明确授权。
+
+1. **新建 Skill 必须有验证方法** — 无法验证的 Skill 是空文，验证方法可以是脚本、检查清单或手动测试步骤
+2. **Skill description 必须包含触发条件** — 没有触发条件的 Skill 永远不会被调用，description 是调度的唯一依据
+3. **Hook 脚本必须幂等** — Hook 可能被重复触发，非幂等的 Hook 会产生副作用
+4. **不破坏现有配置** — settings.json 必须用 Edit 增量修改，不用 Write 全量覆盖
+5. **SKILL.md 控制在 500 行以内** — 超出则拆分到 reference.md，保持渐进加载架构
+
+## 红旗警告
+
+当出现以下信号时，立即停下来重新评估：
+
+| 信号 | 含义 | 正确做法 |
+|------|------|---------|
+| Skill 超过 500 行 | 信息过载，违反渐进加载原则 | 拆分到 reference.md 或 convention.md |
+| 缺少 allowed-tools 声明 | Skill 可能获得不合理的权限 | 明确声明所需工具 |
+| Hook 脚本有副作用（非幂等） | 重复执行会产生不同结果 | 改为幂等设计 |
+| description 是一句话概括 | 缺少触发条件，CC 无法正确调度 | 重写为 CSO 风格（触发条件+不适用场景） |
+
+## 借口防御
+
+| 常见借口 | 现实 | 正确行动 |
+|---------|------|---------|
+| "这个 Skill 以后再补验证" | 没验证 = 没完成，以后补 = 永远不补 | 现在就写验证方法 |
+| "description 简短点就行" | 简短的 description = 永远不会被调用 | 按触发条件+关键词重写 |
 
 ## 工作流程
 

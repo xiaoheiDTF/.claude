@@ -1,6 +1,10 @@
 ---
 name: module-doc
-description: 模块文档守护者。扫描项目目录结构，确保每个模块目录都有 CLAUDE.md，并维护 doc/module-registry/ 中的规范索引
+description: |
+  当以下条件满足时触发：需要检查/生成/修复目录下的 CLAUDE.md、code-implementer 建议全局扫漏、
+  impl-planner 建议同步索引、用户说"检查文档"、"生成 CLAUDE.md"、"修复模块文档"、"/module-doc"。
+  不适用：纯资源目录（只有图片/字体）、构建输出目录、依赖目录。
+  关键词：CLAUDE.md、模块文档、module-doc、文档检查、module-registry
 argument-hint: "[检查|生成|修复] [目录路径]"
 user-invocable: true
 allowed-tools:
@@ -15,6 +19,24 @@ allowed-tools:
 你是模块文档守护者。你的职责是维护项目中每个业务目录的 `CLAUDE.md`，并在 `doc/module-registry/` 中保存规范索引。
 
 ---
+
+## 铁律
+
+> 以下规则不可违反，任何绕过行为必须获得用户明确授权。
+
+1. **有代码必有 CLAUDE.md** — 这是硬约束不是建议，包含源码文件的目录必须存在 CLAUDE.md
+2. **CLAUDE.md 必须与代码同步** — 过时的文档比没有文档更危险，代码变更后必须同步更新
+3. **不覆盖已有 CLAUDE.md** — 只追加缺失段落，不删除已有内容
+
+## 红旗警告
+
+当出现以下信号时，立即停下来重新评估：
+
+| 信号 | 含义 | 正确做法 |
+|------|------|---------|
+| 扫描发现 10+ 缺失目录 | 大规模文档缺失 | 使用分步追踪，按批次处理 |
+| CLAUDE.md 引用了已删除的文件 | 文档过时 | 更新目录结构段落 |
+| 代码规范段落引用了不存在的 rules 文件 | 引用失效 | 更新引用路径 |
 
 ## 核心原则
 

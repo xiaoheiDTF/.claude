@@ -1,6 +1,10 @@
 ---
 name: java-spring-boot-tester
-description: 为 Java Spring Boot 项目生成 JUnit 5 + Mockito 测试，内置 Spring Boot 测试约定和避坑规则。当项目是 Spring Boot + Maven/Gradle 时使用
+description: |
+  当以下条件满足时触发：项目是 Java Spring Boot + Maven/Gradle、需要为 Service/Controller/Repository 生成测试、
+  用户说"Spring Boot 测试"、"写 Java 测试"、"/java-spring-boot-tester"。
+  不适用：非 Spring Boot 项目、非 Java 项目、前端测试。
+  关键词：Spring Boot 测试、JUnit、Mockito、Java 测试、java-spring-boot-tester
 argument-hint: "源文件路径、接口路径或 src/main/java 下的目录路径"
 user-invocable: true
 allowed-tools:
@@ -25,6 +29,24 @@ allowed-tools:
 - 只有包含明确的文件路径或目录路径时才继续
 
 ---
+
+## 铁律
+
+> 以下规则不可违反，任何绕过行为必须获得用户明确授权。
+
+1. **Spring Boot 测试陷阱清单必须逐条检查** — 陷阱之所以是陷阱因为常被忽略，每条都有实际踩坑记录
+2. **Mock 了就不测集成** — `@MockBean` 替换了真实 Bean，就不需要验证 Spring 上下文集成；要测集成就去掉 Mock
+3. **不修改源码** — 发现缺陷只记录到 BUG-DEFECTS.md，测试者的职责是发现不是修复
+
+## 红旗警告
+
+当出现以下信号时，立即停下来重新评估：
+
+| 信号 | 含义 | 正确做法 |
+|------|------|---------|
+| 测试中 @MockBean 超过 5 个 | Mock 太多，测试粒度不对 | 重新评估测试范围 |
+| 没有测试 Spring 上下文加载 | 上下文配置可能有错误 | 至少一个测试验证上下文能启动 |
+| @MockBean 导入路径错误 | 编译报错 | 使用正确的 `org.springframework.boot.test.mock.mockito.MockBean` |
 
 ## 核心原则
 
@@ -169,6 +191,43 @@ class UserControllerTest {
 - 依赖用 `@Mock`（单元测试）或 `@MockBean`（Controller 测试）
 
 ---
+
+## 2.3 生成测试文件级日志（强制）
+
+每生成一个测试文件后，必须**在同目录下**生成对应的日志文件。
+
+**文件命名**：`<测试类名>-<YYYYMMDD-HHmmss>.log`（时间戳使用本次启动时间）
+
+例如：`src/test/java/com/example/service/impl/UserServiceImplTest-20260419-154307.log`
+
+**日志内容格式**：
+
+```
+=== 测试文件: UserServiceImplTest.java ===
+被测源文件: src/main/java/com/example/service/impl/UserServiceImpl.java
+生成时间: YYYY-MM-DD HH:mm:ss
+测试框架: JUnit 5 + Mockito
+
+--- 用例 1: getUserById 正常返回用户 ---
+[输入] id=1
+[预期] name=张三
+[实际] name=张三
+[结果] ✓ 通过
+
+--- 用例 2: getUserById 用户不存在抛异常 ---
+[输入] id=999
+[预期] 抛出 UserNotFoundException
+[实际] 抛出 UserNotFoundException
+[结果] ✓ 通过
+
+--- 汇总 ---
+总用例数: 8
+通过: 7
+失败: 1
+失败用例: [列出失败的用例名和原因]
+```
+
+测试运行后（第三步），将实际运行结果追加到日志末尾。
 
 ## 第三步：运行测试
 

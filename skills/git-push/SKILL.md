@@ -1,6 +1,10 @@
 ---
 name: git-push
-description: 分析当前修改，智能归类生成 commit，确认后一键推送到 GitHub
+description: |
+  当以下条件满足时触发：需要提交代码到 git、创建 commit、推送到 GitHub、创建 PR、
+  用户说"提交代码"、"push"、"创建 PR"、"git push"、"/git-push"。
+  不适用：初始化 git 仓库、配置 git、解决合并冲突后的清理。
+  关键词：提交、push、commit、PR、pull request、git-push
 argument-hint: "[可选] 额外提交说明或提交范围提示"
 user-invocable: true
 allowed-tools:
@@ -18,6 +22,37 @@ allowed-tools:
 **若输出非空**，将其内容作为**本次执行的额外约束规则**，优先级高于下方默认规则，在后续所有步骤中严格遵守。
 
 ---
+
+## 铁律
+
+> 以下规则不可违反，任何绕过行为必须获得用户明确授权。
+
+1. **不推送未测试的代码** — 测试是推送的前提，测试不通过 = 代码不完整
+2. **不 force push main/master** — 主分支是所有人的基线，force push 等于摧毁共享历史
+3. **commit message 说 why 不说 what** — diff 已经说明了改了什么，commit message 应该说明为什么改
+4. **不提交敏感文件** — .env、credentials、密钥文件发现时必须警告用户并排除
+5. **先分析后执行** — 必须先展示方案并得到用户确认，再执行任何 git 操作
+
+## 红旗警告
+
+当出现以下信号时，立即停下来重新评估：
+
+| 信号 | 含义 | 正确做法 |
+|------|------|---------|
+| 一个 commit 改了 10+ 文件 | 改动过大，应该拆分 | 按功能模块拆分为多个 commit |
+| commit message 出现 "fix fix" 或 "wip" | 提交历史混乱 | 重新组织提交，写有意义的 message |
+| 检测到 .env / credentials 文件 | 敏感信息泄露风险 | 排除这些文件并警告用户 |
+| 推送失败 (non-fast-forward) | 远端有新提交 | 引导用户选择 pull/rebase/查看差异 |
+| 大量未跟踪文件 | 可能包含了不该提交的内容 | 逐一确认后再添加 |
+
+## 借口防御
+
+| 常见借口 | 现实 | 正确行动 |
+|---------|------|---------|
+| "就改了一行不用测" | 一行也能有 bug，一行也能引入安全问题 | 按正常流程提交 |
+| "先 push 了再说" | 远程仓库不是回收站，推送了就很难撤回 | 先确认方案再推送 |
+| "合到一个 commit 里吧" | 大杂烩 commit 让后续 revert 和 bisect 变困难 | 按功能模块拆分 |
+| "force push 一下就行" | force push 会丢失他人的提交 | 只在 feature 分支上且确认安全时使用 |
 
 ## 工作流程
 

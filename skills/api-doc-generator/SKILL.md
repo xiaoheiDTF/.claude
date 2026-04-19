@@ -1,6 +1,10 @@
 ---
 name: api-doc-generator
-description: 根据后端 Controller/Router 源码自动生成按 Controller 组织的接口文档（Markdown），输出到当前服务项目根目录下的 `doc/controller/` 中。适用于 FastAPI、Spring Boot、Django REST、Gin 等框架。当用户说"写接口文档"、"生成 API 文档"、"按 Controller 出文档"、"前后端对接文档"时触发。
+description: |
+  当以下条件满足时触发：需要从后端 Controller/Router 源码生成 API 接口文档、
+  前后端需要对齐接口协议、用户说"写接口文档"、"生成 API 文档"、"按 Controller 出文档"、"/api-doc-generator"。
+  不适用：前端代码文档、非 HTTP 接口、纯数据库文档。
+  关键词：API 文档、接口文档、Controller、接口协议、api-doc-generator
 ---
 
 # API 文档生成器
@@ -8,6 +12,24 @@ description: 根据后端 Controller/Router 源码自动生成按 Controller 组
 根据后端 Controller/Router 源码自动生成结构化的接口文档，按 Controller 维度组织，统一存放在 `doc/controller/` 目录。
 
 ---
+
+## 铁律
+
+> 以下规则不可违反，任何绕过行为必须获得用户明确授权。
+
+1. **示例必须可执行** — 不可执行的示例是误导，请求和响应示例必须基于实际代码生成
+2. **每个端点必须有请求和响应示例** — 缺一不可，没有示例的文档不如没有文档
+3. **文档必须基于源码生成** — 禁止凭空编造字段或 URL，所有信息必须从代码中提取
+
+## 红旗警告
+
+当出现以下信号时，立即停下来重新评估：
+
+| 信号 | 含义 | 正确做法 |
+|------|------|---------|
+| 文档中有占位符 API | 未基于实际代码生成 | 回到源码提取真实数据 |
+| 缺少错误码说明 | 前端无法处理异常 | 从全局异常处理器提取错误码 |
+| 没有认证方式说明 | 安全性缺失 | 从 Security 配置中提取认证信息 |
 
 ## 输入模式
 
