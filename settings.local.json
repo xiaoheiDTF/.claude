@@ -186,7 +186,22 @@
       "Bash(JAVA_HOME=\"D:/development/javaJdk/ms-21\" \"D:/development/maven/apache-maven-3.9.14/bin/mvn.cmd\" dependency:tree -Dincludes=dev.langchain4j)",
       "Bash(JAVA_HOME=\"D:/development/javaJdk/ms-21\" D:/development/maven/apache-maven-3.9.14/bin/mvn test-compile:*)",
       "Bash(JAVA_HOME=\"D:/development/javaJdk/ms-21\" \"D:/development/maven/apache-maven-3.9.14/bin/mvn.cmd\" dependency:sources -DincludeGroupIds=dev.langchain4j -DincludeArtifactIds=langchain4j-core)",
-      "Bash(unzip -p __TRACKED_VAR__/.m2/repository/dev/langchain4j/langchain4j-core/1.13.0/langchain4j-core-1.13.0-sources.jar dev/langchain4j/model/chat/ChatModel.java)"
+      "Bash(unzip -p __TRACKED_VAR__/.m2/repository/dev/langchain4j/langchain4j-core/1.13.0/langchain4j-core-1.13.0-sources.jar dev/langchain4j/model/chat/ChatModel.java)",
+      "Bash(JAVA_HOME=\"D:/development/javaJdk/ms-21\" \"D:/development/maven/apache-maven-3.9.14/bin/mvn.cmd\" dependency:sources)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-21\" mvn:*)",
+      "Bash(JAVA_HOME=\"D:/CodeDevelopment/languageManageTool/CodeLanguagePackge/Java/ms-21.0.10\" mvn:*)",
+      "Bash(JAVA_HOME=\"D:/CodeDevelopment/languageManageTool/CodeLanguagePackge/Java/ms-21.0.10\" mvn test:*)",
+      "Bash(JAVA_HOME=\"D:/CodeDevelopment/languageManageTool/CodeLanguagePackge/Java/ms-21.0.10\")",
+      "Bash(\"$JAVA_HOME/bin/javap\":*)",
+      "Bash(\"D:/CodeDevelopment/languageManageTool/CodeLanguagePackge/Java/ms-21.0.10/bin/javap\":*)",
+      "Bash(\"D:/CodeDevelopment/languageManageTool/CodeLanguagePackge/Java/ms-21.0.10/bin/javap\" -classpath \"D:/CodeDevelopment/DevelopmentTool/maven/.m2/repository/dev/langchain4j/langchain4j-core/1.13.0/langchain4j-core-1.13.0.jar\" dev.langchain4j.data.message.AiMessage)",
+      "Bash(grep:*)",
+      "Bash(mvn clean test:*)",
+      "Bash(xxd:*)",
+      "Bash(mvn exec:java:*)",
+      "Bash(mvn clean compile test-compile:*)",
+      "Bash(curl:*)",
+      "Bash(printf:*)"
     ],
     "deny": [
       "Bash(rm -rf *)",

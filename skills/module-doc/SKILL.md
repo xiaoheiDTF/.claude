@@ -4,7 +4,7 @@ description: |
   当以下条件满足时触发：需要检查/生成/修复目录下的 CLAUDE.md、code-implementer 建议全局扫漏、
   impl-planner 建议同步索引、用户说"检查文档"、"生成 CLAUDE.md"、"修复模块文档"、"/module-doc"。
   不适用：纯资源目录（只有图片/字体）、构建输出目录、依赖目录。
-  关键词：CLAUDE.md、模块文档、module-doc、文档检查、module-registry
+  关键词：CLAUDE.md、模块文档、module-doc、文档检查
 argument-hint: "[检查|生成|修复] [目录路径]"
 user-invocable: true
 allowed-tools:
@@ -16,7 +16,7 @@ allowed-tools:
   - Glob
 ---
 
-你是模块文档守护者。你的职责是维护项目中每个业务目录的 `CLAUDE.md`，并在 `doc/module-registry/` 中保存规范索引。
+你是模块文档守护者。你的职责是维护项目中每个业务目录的 `CLAUDE.md`。
 
 ---
 
@@ -42,7 +42,6 @@ allowed-tools:
 
 - **有代码的目录就要有 CLAUDE.md** — 空目录除外
 - **规范必须具体可执行** — 禁止只写抽象口号
-- **module-registry 是镜像备份** — 必须与项目中的 CLAUDE.md 保持一致
 - **增量维护** — 只处理有变更的部分，不重写整个项目
 
 ---
@@ -54,8 +53,8 @@ allowed-tools:
 | $ARGUMENTS | 行为 |
 |-----------|------|
 | 空 或 "检查" | **检查模式**：扫描全项目，列出所有缺失/不完整/过时的 CLAUDE.md |
-| "生成 [路径]" | **生成模式**：为指定目录（默认全项目）生成缺失的 CLAUDE.md 和 module-registry 卡片 |
-| "修复 [路径]" | **修复模式**：检查 + 自动补全缺失内容，更新 module-registry 索引 |
+| "生成 [路径]" | **生成模式**：为指定目录（默认全项目）生成缺失的 CLAUDE.md |
+| "修复 [路径]" | **修复模式**：检查 + 自动补全缺失内容 |
 
 ---
 
@@ -85,7 +84,7 @@ allowed-tools:
 | **缺失** | 目录有代码文件但无 CLAUDE.md | 生成默认模板 |
 | **不完整** | 有 CLAUDE.md 但缺少关键段落 | 补全缺失段落 |
 | **过时** | 目录结构已变（新增/删除子目录）但 CLAUDE.md 未更新 | 提示更新目录结构段落 |
-| **正常** | 有 CLAUDE.md 且结构完整 | 仅同步 module-registry |
+| **正常** | 有 CLAUDE.md 且结构完整 | 无需处理 |
 
 ---
 
@@ -105,7 +104,7 @@ allowed-tools:
 
 ### 3.2 读取已有规范
 
-如果 `doc/module-registry/` 中已有对应的模块卡片，优先读取其内容作为生成基础。
+如果项目中已有 `CLAUDE.md`，优先读取其内容作为生成基础。
 
 ### 3.3 生成内容
 
@@ -148,64 +147,7 @@ allowed-tools:
 
 ---
 
-## 第四步：同步 module-registry
-
-### 4.1 计算镜像路径
-
-`doc/module-registry/` 的目录结构**完全镜像**代码目录结构：
-
-| 代码目录路径 | registry 镜像路径 |
-|-------------|------------------|
-| `travel-agent/` | `doc/module-registry/travel-agent/CLAUDE.md` |
-| `travel-agent/app/models/` | `doc/module-registry/travel-agent/app/models/CLAUDE.md` |
-| `travel-web/src/components/` | `doc/module-registry/travel-web/src/components/CLAUDE.md` |
-
-**规则**：直接将项目中的 `CLAUDE.md` 复制到 `doc/module-registry/<相对路径>/CLAUDE.md`。
-
-### 4.2 生成/更新镜像文件
-
-**如果项目中有 CLAUDE.md**：
-- 用 `mkdir -p` 确保 `doc/module-registry/<相对路径>/` 目录存在
-- 将项目 `CLAUDE.md` **复制**到 registry 对应位置
-
-**如果项目中没有 CLAUDE.md**（刚生成的情况）：
-- 将新生成的 CLAUDE.md 同时复制到 registry 对应位置
-- 并在镜像文件中追加占位标记（可选）
-
-### 4.3 更新 index.json
-
-更新 `doc/module-registry/index.json`，记录所有模块的元数据：
-
-```json
-{
-  "version": "1.0",
-  "lastUpdated": "2026-04-13",
-  "modules": [
-    {
-      "id": "travel-agent",
-      "path": "travel-agent",
-      "claudeMd": "travel-agent/CLAUDE.md",
-      "registryPath": "doc/module-registry/travel-agent/CLAUDE.md",
-      "languages": ["python"],
-      "status": "ok"
-    },
-    {
-      "id": "travel-agent-app-models",
-      "path": "travel-agent/app/models",
-      "claudeMd": "travel-agent/app/models/CLAUDE.md",
-      "registryPath": "doc/module-registry/travel-agent/app/models/CLAUDE.md",
-      "languages": ["python"],
-      "status": "ok"
-    }
-  ]
-}
-```
-
-`status` 取值：`ok` | `missing` | `incomplete` | `outdated`
-
----
-
-## 第五步：输出报告
+## 第四步：输出报告
 
 无论哪种模式，最终必须输出检查报告：
 
@@ -236,10 +178,6 @@ allowed-tools:
 #### 结构过时
 - `path/to/dir4/CLAUDE.md` → 目录下新增 `utils/` 子目录，建议更新
 
-### module-registry 同步结果
-- 新增卡片: X 个
-- 更新卡片: X 个
-- index.json 已更新
 ```
 
 ---
@@ -250,10 +188,8 @@ allowed-tools:
 2. **跳过工具目录** — `node_modules/`, `.venv/`, `__pycache__/`, `dist/`, `.git/` 等必须跳过
 3. **路径相对化** — 所有路径使用相对于项目根目录的路径
 4. **语言模板引用 rules** — CLAUDE.md 的代码规范部分必须引用 `.claude/rules/<语言>.md`
-5. **卡片必须同步** — 项目中生成/修改 CLAUDE.md 后，必须同步到 module-registry
-6. **index.json 必须更新** — 每次执行后更新索引文件
-7. **报告必须输出** — 无论是否有变更，都必须输出检查结果报告
-8. **大规模修复分步追踪** — 当扫描发现 10+ 个需要处理的目录时，使用 TodoWrite 按操作类型分组追踪（生成缺失 → 修复过时 → 补全不完整 → 同步 registry → 更新索引），避免遗漏
+5. **报告必须输出** — 无论是否有变更，都必须输出检查结果报告
+6. **大规模修复分步追踪** — 当扫描发现 10+ 个需要处理的目录时，使用 TodoWrite 按操作类型分组追踪（生成缺失 → 修复过时 → 补全不完整），避免遗漏
 
 ---
 

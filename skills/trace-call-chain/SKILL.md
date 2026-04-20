@@ -56,7 +56,7 @@ allowed-tools:
 
 ### 第四步：生成链路报告文档
 
-将完整的追踪结果写入 Markdown 文件。文件保存位置：项目根目录下创建 `trace-reports/` 目录，文件名格式 `YYYYMMDD-HHmmss-<简短描述>.md`。
+将完整的追踪结果写入 Markdown 文件。文件保存位置：`doc/trace-reports/` 目录，文件名格式 `YYYYMMDD-HHmmss-<简短描述>.md`。
 
 报告模板见 `$CLAUDE_SKILL_DIR/reference.md` 的"链路报告模板"一节。**每个链路节点都必须包含该行号范围的实际代码**。
 

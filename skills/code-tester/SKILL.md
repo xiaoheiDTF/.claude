@@ -177,7 +177,6 @@ echo "OS=$OSTYPE | Platform=$(uname -s 2>/dev/null || echo unknown) | Shell=$SHE
 
 结论：只为 selector.ts 生成测试
 主测试文件位置：frontend/tests/core/browser/cdp/command/selector.test.ts
-镜像位置：doc/module-test/frontend/tests/core/browser/cdp/command/selector.test.ts
 ```
 
 ### 0.5 定位子项目根目录（关键步骤）
@@ -244,24 +243,17 @@ bash $CLAUDE_SKILL_DIR/scan-test-targets.sh <用户指定的路径>
 2. **已有测试文件** → 参考已有模式
 3. **都没有** → 使用 **test 子目录规则**：测试文件统一放在被测源码所在目录的 `test/` 子目录下
 
-#### 集中式 tests/ 镜像结构（默认）
+#### 集中式 tests/ 结构（默认）
 
-| 被测文件 | 主测试文件位置 | module-test 镜像位置 |
-|---------|---------------|---------------------|
-| `travel-agent/app/models/chat.py` | `travel-agent/tests/models/test_chat.py` | `doc/module-test/travel-agent/tests/models/test_chat.py` |
-| `travel-web/src/api/chat.js` | `travel-web/tests/api/chat.test.js` | `doc/module-test/travel-web/tests/api/chat.test.js` |
-| `travel-web/src/components/ChatView.vue` | `travel-web/tests/components/ChatView.test.vue` | `doc/module-test/travel-web/tests/components/ChatView.test.vue` |
-| `backend/src/main/java/com/example/ApiService.java` | `backend/src/test/java/com/example/ApiServiceTest.java` | `doc/module-test/backend/src/test/java/com/example/ApiServiceTest.java` |
-
-**同步要求**：
-- 每次生成测试文件时，必须**同时**写入两个位置：
-  1. **主位置**：`<subproject>/tests/` 下的集中测试目录（或框架强制目录，如 `src/test/java/`）
-  2. **镜像位置**：`doc/module-test/` 下与主位置结构完全一致的路径
-- `doc/module-test/` 是测试文件的集中管理入口，方便后期统一检索和维护
+| 被测文件 | 主测试文件位置 |
+|---------|---------------|
+| `travel-agent/app/models/chat.py` | `travel-agent/tests/models/test_chat.py` |
+| `travel-web/src/api/chat.js` | `travel-web/tests/api/chat.test.js` |
+| `travel-web/src/components/ChatView.vue` | `travel-web/tests/components/ChatView.test.vue` |
+| `backend/src/main/java/com/example/ApiService.java` | `backend/src/test/java/com/example/ApiServiceTest.java` |
 
 **框架特殊约定时的处理**：
-- 如果框架强制要求特定测试目录（如 Spring Boot 的 `src/test/java/`、Go 的同级 `*_test.go`），测试文件先生成在框架要求位置
-- 然后**复制一份**到 `doc/module-test/` 的对应镜像路径，保持树形结构一致
+- 如果框架强制要求特定测试目录（如 Spring Boot 的 `src/test/java/`、Go 的同级 `*_test.go`），测试文件生成在框架要求位置
 
 ---
 
@@ -427,15 +419,13 @@ cd <对应子项目> && <对应框架命令> <测试文件路径> --verbose
 - 记录必须包含：标题、严重级别、复现步骤、影响范围、证据（日志/堆栈/断言输出）
 - `code-tester` **只负责发现和记录，不负责修复源码 bug**
 
-### 第五步：生成配套文件、运行日志与 module-test 镜像同步（强制，不可跳过）
+### 第五步：生成配套文件与运行日志（强制，不可跳过）
 
 **无论哪种模式，生成测试文件后都必须执行此步骤。这是最终交付物的一部分，不得省略。**
 
 **特别约束**：
-1. 测试文件必须同时写入**主位置**（源码目录的 `test/` 子目录）和**镜像位置**（`doc/module-test/` 对应路径）
-2. `skill-gate` Hook 会在每次测试文件写入后自动检查镜像是否同步
-3. 配套文件生成后必须立即运行 `check-deliverables.sh`
-4. `tester-logs/` 日志必须按本次启动时间生成，不可遗漏
+1. 配套文件生成后必须立即运行 `check-deliverables.sh`
+2. `tester-logs/` 日志必须按本次启动时间生成，不可遗漏
 
 测试文件统一放在 `<subproject>/tests/` 集中目录下，按源码结构镜像组织，不散落在 `src/` 里面。配套文件（运行脚本、说明文档、日志、缺陷/漏洞清单）放在**每个测试子目录**下：
 
@@ -470,18 +460,6 @@ cd <对应子项目> && <对应框架命令> <测试文件路径> --verbose
 **code-tester 执行日志**（记录本次测试生成全过程）：
 - 放在 `<subproject>/tester-logs/YYYYMMDD-HHmmss-code-tester.log`
 
-**doc/module-test/ 镜像结构**：
-
-```
-doc/module-test/
-└── travel-web/
-    └── tests/
-        ├── api/
-        │   └── chat.test.js       ← 镜像备份
-        └── components/
-            └── ChatView.test.vue  ← 镜像备份
-```
-
 #### 5.1 生成 run-tests.sh（Unix / Git Bash）
 
 **脚本位置**：对应的测试子目录内（如 `travel-web/tests/api/run-tests.sh`）
@@ -504,7 +482,7 @@ export PYTHONIOENCODING=utf-8
 
 **脚本位置**：对应的测试子目录内
 
-**脚本模板**见 `convention.md` 第七节的 `run-tests.ps1` 模板（module-test 适配版）。
+**脚本模板**见 `convention.md` 第七节的 `run-tests.ps1` 模板（test 子目录适配版）。
 
 **编码防乱码规则（必须）**：在 `$ErrorActionPreference` 之后加入：
 ```powershell
@@ -523,12 +501,12 @@ $env:PYTHONIOENCODING = "utf-8"
 # <模块名> 测试
 > 自动生成于: YYYY-MM-DD HH:mm
 > 测试框架: <框架名>
-> 测试结构: tests/ 集中镜像 + module-test 同步
+> 测试结构: tests/ 集中镜像
 
 ## 测试覆盖
-| 源文件 | 主测试文件 | 镜像位置 | 覆盖函数 | 用例数 |
-|--------|-----------|---------|---------|-------|
-| src/api/chat.js | tests/api/chat.test.js | doc/module-test/.../tests/api/chat.test.js | sendMessage, sendMessageStream | 8 |
+| 源文件 | 主测试文件 | 覆盖函数 | 用例数 |
+|--------|-----------|---------|-------|
+| src/api/chat.js | tests/api/chat.test.js | sendMessage, sendMessageStream | 8 |
 
 ## 运行测试
   bash run-tests.sh           # 运行当前目录测试
@@ -597,7 +575,7 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <测试子目录的绝对路径>
 
 ### 第六步：同步到 /doc/ai-coding（强制）
 
-将测试结果、`tester-logs/` 执行日志、以及 `doc/module-test/` 镜像快照同步到 `doc/ai-coding` 流水线目录，纳入 `05-test/` 阶段：
+将测试结果、`tester-logs/` 执行日志同步到 `doc/ai-coding` 流水线目录，纳入 `05-test/` 阶段：
 
 1. 优先推导需求根目录：
    - 已给出执行计划路径时：`.../03-plan/` 的上级目录
@@ -611,8 +589,7 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <测试子目录的绝对路径>
    - `manifest.json`
 3. `BUG-DEFECTS.md` 与 `SECURITY-FINDINGS.md` 内容由当前测试目录同名文件同步（复制/汇总）
 4. `tester-logs/` 中最近的日志文件同步到 `05-test/logs/`
-5. `doc/module-test/` 中本次涉及模块的镜像路径生成快照索引 `module-test-index.json`，放入 `05-test/`
-6. 该阶段文档生成后，才算测试交付完成
+5. 该阶段文档生成后，才算测试交付完成
 
 ---
 
@@ -678,7 +655,6 @@ bash $CLAUDE_SKILL_DIR/check-deliverables.sh <测试子目录的绝对路径>
     # 例如：frontend/tests/api、frontend/tests/components
     ```
     **注意**：参数必须指向包含测试文件的具体测试子目录（如 `tests/api/`），不要传 `tests/` 根目录或子项目根目录。脚本会自动检查：测试文件、配套文件、日志目录。如果有 MISSING 项，必须补生成后再检查一次，直到全部 OK
-19. **module-test 镜像强制同步（红线）** — 每次生成或修改测试文件后，**必须**同步到 `doc/module-test/` 的对应镜像路径。主位置和镜像位置的内容必须保持一致。镜像路径的目录结构必须与主测试目录完全一致。`skill-gate` Hook 会自动检查此项，遗漏会触发验证警告
 19. **断言失败先追根因再改** — 测试断言失败时，不要直接修改断言让测试通过。先沿调用链确认根因属于哪类：测试前置条件不满足 / 被测代码设计限制 / 真实 bug。根因是源码限制时调整测试策略绕过，根因是测试问题时修正测试
 20. **验证优先用操作返回值** — 验证操作结果时，优先使用操作本身的返回值（如 `create()` 返回的对象），而非发起独立查询（如 `getStatus()`）。独立查询可能依赖额外环境条件，在测试环境下不稳定
 21. **发现缺陷不修复源码（红线）** — `code-tester` 发现功能缺陷或安全漏洞后，**只允许记录到 BUG-DEFECTS.md / SECURITY-FINDINGS.md**，**严禁**在本技能内修改任何源码文件。哪怕只是加一行注释也不行。缺陷修复由人类或后续 `/code-implementer` 执行
