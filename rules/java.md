@@ -145,22 +145,50 @@ paths:
 
 ## 魔法变量治理
 
+### 核心原则：不要为一次性字符串创建常量
+
+- **只在 1 处使用的字符串** → **直接 inline**，禁止抽成常量
+- **只在 1 个文件内使用 2 次的字符串** → **仍然 inline**，重复写两遍也比造一个没用的常量类好
+- **跨 3+ 个文件使用，或极易拼写错误** → 才允许放到 `common/constants/`
+- **天然属于类型定义**（角色、状态、错误码） → 用 `enum`
+
+> ⚠️ **严禁**为 JSON 字段名、Map key、SSE 事件名等创建"假常量类"——即定义了一堆 `public static final String` 却几乎没有被引用，最后变成无人维护的僵尸代码。
+
 ### 三级判定
 
 | 级别 | 条件 | 做法 |
 |------|------|------|
-| ① inline | 只在 1~2 处使用，不跨模块 | 直接写在代码中，用类型系统兜底 |
+| ① inline（默认） | 只在 1~2 处使用，不跨模块 | **直接写在代码中**。不要为了避免"魔法变量"而制造无用抽象 |
 | ② 常量类 | 跨 3+ 模块使用，或容易拼错 | `public final class` + `private` 构造函数 + `public static final String`，放在 `common/constants/` |
 | ③ 枚举 | 天然属于类型定义（角色、状态、错误码） | `enum` + `@JsonValue` + `fromValue()`，放在 `common/enums/` |
 
 **配置数值**（超时、阈值、端口等环境相关值）→ `@ConfigurationProperties` 内部类 + `application.yml` 环境变量覆盖。
 
-### 触发信号
+### 触发信号（满足以下才抽常量）
 
-- 同一字符串在 3 个以上文件出现（如 `"token"`, `"user"`, `"session_id"`）
-- 配置数值直接写在业务逻辑中（如 `60_000L`, `4000`）
-- 协议字段名以字面量散落（SSE 事件名、JSON key）
-- 错误码和错误文案硬编码（如 `404`, `"会话不存在"`）
+- [ ] 同一字符串在 **3 个以上文件**出现（如 `"token"`, `"user_id"`）
+- [ ] 配置数值直接写在业务逻辑中（如 `60_000L`, `4000`）
+- [ ] 错误码和错误文案硬编码（如 `404`, `"会话不存在"`）
+- [ ] 协议字段名在 **多个模块**散落且容易拼错
+
+**以下情况不触发**：
+- JSON 字段名只在一两个 `Map.of()` 或 `node.get()` 中出现 → inline
+- Prompt 模板中的示例 JSON key → inline（Prompt 本身已经是字符串常量）
+- 卡片/响应文案（如 `"下单成功"`）只在一处使用 → inline
+
+### 反例（禁止这样做）
+
+```java
+// ❌ 错误：为一个只在 1 个地方使用的字符串创建常量类
+public final class JsonField {
+    public static final String COLLECTED_INFO = "collected_info"; // 只被引用 0 次
+    public static final String TYPE = "type";                      // 只被引用 1 次
+}
+
+// ✅ 正确：直接使用
+Map.of("collected_info", travelInfo.toMap());
+node.get("type");
+```
 
 ### 标准写法
 
@@ -179,4 +207,4 @@ paths:
 
 ### 实现顺序
 
-定义常量/枚举/配置（底层零依赖）→ 替换消费代码中的硬编码 → 同步文档
+确定字符串确实被多处使用 → 定义常量/枚举/配置（底层零依赖）→ 替换消费代码中的硬编码 → 同步文档

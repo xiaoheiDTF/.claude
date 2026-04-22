@@ -201,7 +201,9 @@
       "Bash(mvn exec:java:*)",
       "Bash(mvn clean compile test-compile:*)",
       "Bash(curl:*)",
-      "Bash(printf:*)"
+      "Bash(printf:*)",
+      "Bash(javap:*)",
+      "Bash(mvn clean:*)"
     ],
     "deny": [
       "Bash(rm -rf *)",
