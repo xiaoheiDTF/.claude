@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 # session-start.sh — SessionStart hook: check pending reviews from last session
 # Reads pending-reviews.md and injects as additionalContext if it exists
+# Inspired by claude-notifications-go: always exit 0, never block Claude
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -12,14 +13,14 @@ if [ ! -f "$PENDING_FILE" ]; then
 fi
 
 # Read first 20 lines (avoid flooding context)
-CONTENT=$(head -20 "$PENDING_FILE")
+CONTENT=$(head -20 "$PENDING_FILE" 2>/dev/null || true)
 
 if [ -n "$CONTENT" ]; then
   # Escape for JSON
   ESCAPED=$(echo "$CONTENT" | node -e "
   let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
     process.stdout.write(JSON.stringify(d.trim()))
-  })" 2>/dev/null)
+  })" 2>/dev/null || echo '""')
 
   echo "{\"additionalContext\": \"[session-start] 上次会话检测到以下模式，请在对话初期主动提及：\\n${ESCAPED}\"}"
 fi

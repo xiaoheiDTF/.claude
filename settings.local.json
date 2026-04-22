@@ -224,6 +224,18 @@
             "async": false
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-tool-confirm.sh",
+            "statusMessage": "Checking if notification needed...",
+            "async": false,
+            "timeout": 10
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -266,6 +278,17 @@
             "type": "command",
             "command": "bash .claude/hooks/session-end.sh",
             "statusMessage": "Analyzing session patterns...",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/task-complete-notify.sh",
+            "statusMessage": "Task complete notification...",
             "async": true
           }
         ]
