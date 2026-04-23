@@ -203,7 +203,20 @@
       "Bash(curl:*)",
       "Bash(printf:*)",
       "Bash(javap:*)",
-      "Bash(mvn clean:*)"
+      "Bash(mvn clean:*)",
+      "Read(//d/tmp/**)",
+      "Bash(jar xf:*)",
+      "Bash(mkdir -p /tmp/uw-decompile)",
+      "Read(//tmp/**)",
+      "Bash(mvn dependency:tree -Dincludes=\"*uw*\")",
+      "Read(//c/Users/EDY/Desktop/saas-lvtu/**)",
+      "Bash(sort -t/ -k2,2 -k3,3)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(sed 's/RoutePlanningRequest/DrivingRouteRequestV3/g; s/高德驾车路线规划API的请求类/高德驾车路线规划API（V3基础版）的请求类/' RoutePlanningRequest.java)",
+      "Bash(sed 's/RoutePlanningResponse/DrivingRouteResponseV3/g; s/高德驾车路线规划API的响应类/高德驾车路线规划API（V3基础版）的响应类/' RoutePlanningResponse.java)",
+      "Bash(sed 's/TransitRouteResponse/TransitRouteResponseV3/g; s/高德公交路径规划API的响应类/高德公交路径规划API（V3基础版）的响应类/' TransitRouteResponse.java)",
+      "Bash(sed 's/TransitRouteRequest /TransitRouteRequestV3 /g; s/class TransitRouteRequest/class TransitRouteRequestV3/g; s/TransitRouteRequestV3V3/TransitRouteRequestV3/g; s/高德公交路径规划API的请求类/高德公交路径规划API（V3基础版）的请求类/' TransitRouteRequest.java)",
+      "Bash(sed 's/WalkingRouteResponse /WalkingRouteResponseV3 /g; s/class WalkingRouteResponse/class WalkingRouteResponseV3/g; s/WalkingRouteResponseV3V3/WalkingRouteResponseV3/g; s/高德步行路径规划API的响应类/高德步行路径规划API（V3基础版）的响应类/' WalkingRouteResponse.java)"
     ],
     "deny": [
       "Bash(rm -rf *)",
@@ -231,9 +244,9 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/pre-tool-confirm.sh",
+            "timeout": 10,
             "statusMessage": "Checking if notification needed...",
-            "async": false,
-            "timeout": 10
+            "async": false
           }
         ]
       }
