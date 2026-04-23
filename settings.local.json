@@ -237,7 +237,9 @@
             "async": false
           }
         ]
-      },
+      }
+    ],
+    "PermissionRequest": [
       {
         "matcher": "",
         "hooks": [
@@ -245,7 +247,7 @@
             "type": "command",
             "command": "bash .claude/hooks/pre-tool-confirm.sh",
             "timeout": 10,
-            "statusMessage": "Checking if notification needed...",
+            "statusMessage": "Permission needed, bringing to foreground...",
             "async": false
           }
         ]
