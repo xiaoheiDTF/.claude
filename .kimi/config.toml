@@ -1,0 +1,71 @@
+# Kimi CLI Hooks 配置
+# ═══════════════════════════════════════════════════════════════════════════════
+# 使用方式：
+#   1. 将本文件内容追加到 ~/.kimi/config.toml 中
+#   2. 或设置环境变量: export KIMI_CONFIG_FILE=/path/to/.claude/kimi/config.toml
+#
+# 本配置将 .claude/hooks/ 下的 Claude Code 钩子适配为 Kimi CLI 可用。
+# 原钩子文件（.claude/hooks/ 下）保持不变，新增适配脚本位于 .claude/.kimi/hooks/ 下。
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── 1. 敏感文件保护 ────────────────────────────────────────────────────────────
+# 对应原钩子: .claude/hooks/protect-sensitive.sh
+# 作用: 阻止编辑 .env、密钥、凭证等敏感文件
+# 说明: Kimi CLI 使用 WriteFile/StrReplaceFile 工具名，通过 write-compat-wrapper.sh 映射为 Write/Edit
+[[hooks]]
+event = "PreToolUse"
+matcher = "WriteFile|StrReplaceFile|NotebookEdit"
+command = "sh .claude/kimi/hooks/write-compat-wrapper.sh .claude/hooks/protect-sensitive.sh"
+timeout = 10
+
+# ── 2. 权限确认窗口前台 ──────────────────────────────────────────────────────
+# 对应原钩子: .claude/hooks/pre-tool-confirm.sh
+# 作用: 需要用户审批时将终端窗口带到前台
+# 说明: Claude Code 使用 PermissionRequest 事件，Kimi CLI 使用 Notification(permission_prompt) 事件
+[[hooks]]
+event = "Notification"
+matcher = "permission_prompt"
+command = "sh .claude/kimi/hooks/notification-adapter.sh"
+timeout = 10
+
+# ── 3. 会话启动检查 ───────────────────────────────────────────────────────────
+# 对应原钩子: .claude/hooks/session-start.sh
+# 作用: 会话开始时检查上次会话遗留的待审核项，注入上下文提醒
+[[hooks]]
+event = "SessionStart"
+command = "sh .claude/hooks/session-start.sh"
+timeout = 10
+
+# ── 4. 工具调用追踪 ───────────────────────────────────────────────────────────
+# 对应原钩子: .claude/hooks/session-track.sh
+# 作用: 轻量级追踪每个工具调用，写入 doc/session-tracking/ 用于模式检测
+[[hooks]]
+event = "PostToolUse"
+command = "sh .claude/hooks/session-track.sh"
+timeout = 10
+
+# ── 5. Skill Gate 验证 ────────────────────────────────────────────────────────
+# 对应原钩子: .claude/hooks/skill-gate/skill-gate.sh
+# 作用: 特定 Skill 输出后的校验（impl-planner、code-tester、code-implementer）
+# 说明: 通过 write-compat-wrapper.sh 映射工具名，确保 WriteFile → Write 的兼容性
+[[hooks]]
+event = "PostToolUse"
+matcher = "WriteFile|StrReplaceFile"
+command = "sh .claude/kimi/hooks/write-compat-wrapper.sh .claude/hooks/skill-gate/skill-gate.sh"
+timeout = 10
+
+# ── 6. 会话结束分析 ───────────────────────────────────────────────────────────
+# 对应原钩子: .claude/hooks/session-end.sh
+# 作用: 会话结束时分析工具调用模式（设计反复、返工、可自动化模式），写入 pending-reviews
+[[hooks]]
+event = "Stop"
+command = "sh .claude/hooks/session-end.sh"
+timeout = 30
+
+# ── 7. 任务完成通知 ───────────────────────────────────────────────────────────
+# 对应原钩子: .claude/hooks/task-complete-notify.sh
+# 作用: Agent 轮次结束时将窗口带到前台并弹出桌面通知
+[[hooks]]
+event = "Stop"
+command = "sh .claude/hooks/task-complete-notify.sh"
+timeout = 30

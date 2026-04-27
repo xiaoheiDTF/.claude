@@ -8,3 +8,5 @@
 hooks/*.log
 hooks/_debug-last-input.json
 hooks/lib/*.log
+.kimi/hooks/*.log
+.kimi/hooks/_debug-last-input.json
